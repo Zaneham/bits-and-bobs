@@ -99,8 +99,11 @@ both trees built from the same checkout on each machine:
 - Apple M1, macOS arm64, which also covers the macOS variant of that emitter
 - SpacemiT X60, riscv64
 
-Functional and four domain stress tests pass on both machines finished so far,
-and the assembly is the same as the cross-built version.
+Functional and four domain stress tests pass on all three, the assembly matches
+the cross-built version, and the full upstream testsuite is clean: 1615 passed
+and 0 failed on both Power10 and RISC-V. The ARM machine reports 1613 passed
+and 1 failed, that one being an lldb output mismatch which the unmodified
+baseline fails identically on the same host.
 
 ## Numbers
 

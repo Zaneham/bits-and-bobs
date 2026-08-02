@@ -85,7 +85,43 @@ than leaving it marked.
 
 RISC-V
 ----------------------------------------------------------------------------
-Build was still in progress when this file was written. Results to be added.
+src/cas_test.ml
+
+  all ok
+
+src/cas_par.ml
+
+  all ok
+  all ok
+  all ok
+
+Emitted by the native compiler on the machine itself:
+
+  277:	lr.d.aqrl	a7, (a2)
+  279:	sc.d.rl	a7, a5, (a2)
+  312:	lr.d.aqrl	a1, (a2)
+  314:	sc.d.rl	a1, s0, (a2)
+  347:	lr.d.aqrl	t3, (a2)
+  349:	sc.d.rl	t3, s9, (a2)
+
+aqrl on the lr and rl on the sc is the sequentially consistent mapping. The
+ISA manual warns against rl on an lr without aq, and aq on an sc without rl.
+No trailing fence, because aqrl already orders both directions.
+
+
+UPSTREAM TESTSUITE
+----------------------------------------------------------------------------
+The full OCaml testsuite, run on the patched tree on each machine.
+
+  POWER10   1615 passed, 0 failed, 0 unexpected errors
+  RISC-V    1615 passed, 0 failed, 0 unexpected errors
+  ARM       1613 passed, 1 failed, 0 unexpected errors
+
+The single failure on the ARM machine is tests/native-debugger/lldb.ml, which
+is an lldb output format mismatch on that host and nothing to do with this
+work. The unmodified baseline tree fails it identically on the same machine,
+so there is no regression. That test is skipped on Linux, so it only ever
+shows up on macOS.
 
 
 WHAT THIS DOES AND DOES NOT SHOW
