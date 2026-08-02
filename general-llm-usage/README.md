@@ -9,7 +9,8 @@ back.
 
 ## Prompts
 
-<!-- link goes here -->
+- 2026-08-02, TAL to C transpiler.
+  [shared conversation](https://chatgpt.com/s/t_6a6f01fed4fc8191b6317043d547ac24)
 
 ## If you're reading this off the back of a PR
 
