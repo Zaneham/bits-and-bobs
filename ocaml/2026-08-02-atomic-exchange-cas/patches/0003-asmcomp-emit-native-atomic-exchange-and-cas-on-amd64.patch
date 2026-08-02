@@ -1,7 +1,7 @@
 From <commit> Mon Sep 17 00:00:00 2001
 From: <author>
 Date: 2026-08-02
-Subject: [PATCH 3/5] asmcomp: emit native atomic exchange and cas on amd64,
+Subject: [PATCH 3/6] asmcomp: emit native atomic exchange and cas on amd64,
  arm64, riscv, power
 
 ---

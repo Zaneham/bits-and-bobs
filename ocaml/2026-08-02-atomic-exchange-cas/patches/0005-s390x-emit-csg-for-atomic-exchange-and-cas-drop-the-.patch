@@ -1,7 +1,7 @@
 From <commit> Mon Sep 17 00:00:00 2001
 From: <author>
 Date: 2026-08-02
-Subject: [PATCH 5/5] s390x: emit csg for atomic exchange and cas, drop the
+Subject: [PATCH 5/6] s390x: emit csg for atomic exchange and cas, drop the
  arch gate
 
 ---

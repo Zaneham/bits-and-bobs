@@ -1,0 +1,96 @@
+From <commit> Mon Sep 17 00:00:00 2001
+From: <author>
+Date: 2026-08-02
+Subject: [PATCH 6/6] amd64: plain load and store on the single-domain cas
+ path, fix scratch interference
+
+---
+ asmcomp/amd64/emit.mlp     | 13 +++++++++----
+ asmcomp/amd64/selection.ml |  9 ++++++---
+ asmcomp/interf.ml          | 21 +++++++++------------
+ 3 files changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/asmcomp/amd64/emit.mlp b/asmcomp/amd64/emit.mlp
+index da13de4a9a..68fe32c09e 100644
+--- a/asmcomp/amd64/emit.mlp
++++ b/asmcomp/amd64/emit.mlp
+@@ -774,14 +774,19 @@ let emit_instr env fallthrough i =
+       I.xchg (res i 0) (mem64 QWORD 0 (arg64 i 0));
+       def_label lbl_done
+   | Lop (Iatomic_cas) ->
+-      (* rax holds the expected value on entry. cmpxchg sets ZF on success and
+-         otherwise loads what it found into rax, which we overwrite anyway.
+-         Unlocked cmpxchg has the same semantics for a lone domain. *)
++      (* rax holds the expected value on entry. A lone domain does the compare
++         and the store by hand through res.(1): an unlocked cmpxchg would
++         still serialise on the same port, the same reason fetch-and-add does
++         not use an unlocked xadd here. mov leaves the flags alone, so both
++         paths reach the setcc with ZF meaning "swapped". *)
+       let lbl_multi = new_label() in
+       let lbl_done = new_label() in
+       I.cmp (int 1) (mem64 QWORD 0 (arg64 i 3));
+       I.jne (label lbl_multi);
+-      I.cmpxchg (arg i 2) (mem64 QWORD 0 (arg64 i 0));
++      I.mov (mem64 QWORD 0 (arg64 i 0)) (res i 1);
++      I.cmp (res i 1) (arg i 1);
++      I.jne (label lbl_done);
++      I.mov (arg i 2) (mem64 QWORD 0 (arg64 i 0));
+       I.jmp (label lbl_done);
+       def_label lbl_multi;
+       I.lock_cmpxchg (arg i 2) (mem64 QWORD 0 (arg64 i 0));
+diff --git a/asmcomp/amd64/selection.ml b/asmcomp/amd64/selection.ml
+index d211902250..f166f1aa7c 100644
+--- a/asmcomp/amd64/selection.ml
++++ b/asmcomp/amd64/selection.ml
+@@ -137,10 +137,13 @@ let pseudoregs_for_operation op arg res =
+       let treg = Reg.create Int in
+       ([| arg.(0); res.(0); arg.(2) |], [| res.(0); treg |])
+   (* cmpxchg compares against rax and overwrites it with the value it found,
+-     so the expected value goes in rax and the tagged result comes back there
+-     too. arg.(3) is &caml_num_domains_running. *)
++     so the expected value goes in rax and the result comes back there too.
++     res.(1) is a scratch for the single-domain path, which loads and stores
++     by hand rather than paying for a cmpxchg it does not need.
++     arg.(3) is &caml_num_domains_running. *)
+   | Iatomic_cas ->
+-      ([| arg.(0); rax; arg.(2); arg.(3) |], [| rax |])
++      let treg = Reg.create Int in
++      ([| arg.(0); rax; arg.(2); arg.(3) |], [| rax; treg |])
+   (* Other instructions are regular *)
+   | _ -> raise Use_default
+ 
+diff --git a/asmcomp/interf.ml b/asmcomp/interf.ml
+index 72bea95cf1..ed8c657c63 100644
+--- a/asmcomp/interf.ml
++++ b/asmcomp/interf.ml
+@@ -92,18 +92,15 @@ let build_graph fundecl =
+         interf i.next
+     | Iop(Itailcall_ind) -> ()
+     | Iop(Itailcall_imm _) -> ()
+-    | Iop(Iatomic_exchange) ->
+-        (* result must differ from address and new value (LL/SC loop) *)
+-        add_interf i.res.(0) i.arg.(0);
+-        add_interf i.res.(0) i.arg.(1);
+-        add_interf_set i.res i.live;
+-        add_interf_self i.res;
+-        interf i.next
+-    | Iop(Iatomic_cas) ->
+-        (* result must differ from address and both compared values *)
+-        add_interf i.res.(0) i.arg.(0);
+-        add_interf i.res.(0) i.arg.(1);
+-        add_interf i.res.(0) i.arg.(2);
++    | Iop(Iatomic_exchange | Iatomic_cas) ->
++        (* Every result, including the amd64 scratch, must differ from every
++           argument. The address in particular is still needed after the old
++           value has been loaded, and an LL/SC loop re-reads all of them.
++           Where a backend deliberately ties a result to an argument they are
++           the same register by now, and add_interf ignores that. *)
++        Array.iter
++          (fun r -> Array.iter (fun a -> add_interf r a) i.arg)
++          i.res;
+         add_interf_set i.res i.live;
+         add_interf_self i.res;
+         interf i.next
+-- 
+2.51.0.windows.2
+

@@ -1,0 +1,83 @@
+amd64 benchmark, baseline vs branch
+===================================
+
+Produced by src/bench_cas.ml, 100,000,000 iterations, 9 repetitions per case,
+min and median reported. Baseline is the merged fetch-and-add branch, i.e.
+exchange and cas both still going through the C call.
+
+Machine is a developer laptop under WSL2, so the two domain contended figures
+are noisy. Read those as "no meaningful change" rather than as a measurement.
+The single domain and uncontended figures are stable across runs.
+
+Command:
+  ocamlopt.opt -nostdlib -I <tree>/stdlib -I <tree>/otherlibs/unix \
+      unix.cmxa -o bench bench_cas.ml
+
+
+BASELINE (C call)
+----------------------------------------------------------------------------
+  exchange, single domain            min  1.36  median  1.37  ns/op  (9/9)
+  cas, single domain                 min  1.16  median  1.21  ns/op  (9/9)
+  exchange, 2 domains, contended     min  6.97  median  7.58  ns/op  (9/9)
+  cas, 2 domains, contended          min  4.13  median  4.38  ns/op  (9/9)
+  exchange, 2 domains, uncontended   min  0.99  median  1.02  ns/op  (9/9)
+  cas, 2 domains, uncontended        min  0.89  median  0.95  ns/op  (9/9)
+  exchange, boxed (stays a C call)   min  1.48  median  1.53  ns/op  (9/9)
+
+
+BRANCH, FIRST ATTEMPT (unlocked cmpxchg on the single domain path)
+----------------------------------------------------------------------------
+  exchange, single domain            min  0.43  median  0.47  ns/op  (9/9)
+  cas, single domain                 min  1.56  median  1.60  ns/op  (9/9)   <- REGRESSION
+  exchange, 2 domains, contended     min  6.62  median  7.37  ns/op  (9/9)
+  cas, 2 domains, contended          min  4.93  median  5.30  ns/op  (9/9)
+  exchange, 2 domains, uncontended   min  0.82  median  0.83  ns/op  (9/9)
+  cas, 2 domains, uncontended        min  0.88  median  0.95  ns/op  (9/9)
+  exchange, boxed (stays a C call)   min  1.47  median  1.55  ns/op  (9/9)
+
+cas single domain came out slower than the C call it replaced. Cause was
+using an unlocked cmpxchg for the lone domain path. An unlocked cmpxchg still
+serialises on the same port, so it buys nothing, which is the same result
+found earlier for unlocked xadd on fetch-and-add. Exchange did not have this
+problem because it was already using a plain load and store.
+
+
+BRANCH, AFTER THE FIX (plain load, compare, store)
+----------------------------------------------------------------------------
+  exchange, single domain            min  0.51  median  0.62  ns/op  (9/9)
+  cas, single domain                 min  0.40  median  0.42  ns/op  (9/9)
+  exchange, 2 domains, contended     min  6.23  median  6.78  ns/op  (9/9)
+  cas, 2 domains, contended          min  4.65  median  4.97  ns/op  (9/9)
+  exchange, 2 domains, uncontended   min  0.79  median  0.79  ns/op  (9/9)
+  cas, 2 domains, uncontended        min  0.88  median  0.89  ns/op  (9/9)
+  exchange, boxed (stays a C call)   min  1.50  median  1.57  ns/op  (9/9)
+
+
+ON THE CONTENDED FIGURES
+----------------------------------------------------------------------------
+The contended cas number above looked like a 12% regression against the
+baseline. It is not. Run back to back on a quiet machine the branch wins both
+rounds, and the spread between rounds is larger than the difference being
+claimed:
+
+  round 1   base    min  4.48  median  4.66
+            branch  min  3.49  median  4.87
+  round 2   base    min  5.06  median  5.39
+            branch  min  4.16  median  4.78
+
+Treat contended as unchanged within noise on this machine. Real hardware
+figures belong in a separate file.
+
+
+SUMMARY
+----------------------------------------------------------------------------
+                                     base   branch   note
+  exchange, single domain            1.36     0.51   2.7x
+  cas, single domain                 1.16     0.40   2.9x
+  exchange, 2 domains, uncontended   0.99     0.79   1.25x
+  cas, 2 domains, uncontended        0.89     0.88   unchanged
+  contended, both                       -        -   unchanged within noise
+  exchange, boxed                    1.48     1.50   unchanged, keeps barrier
+
+The boxed row is the control. A pointer valued atomic still needs the write
+barrier, so it stays a C call and should not move. It does not.

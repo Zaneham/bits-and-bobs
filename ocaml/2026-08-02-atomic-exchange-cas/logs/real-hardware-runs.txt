@@ -1,0 +1,100 @@
+Real hardware runs
+==================
+
+Everything else in this directory was produced under qemu-user emulation.
+qemu-user serialises, so it validates instruction encodings and functional
+correctness but says nothing about memory ordering. These runs are on real
+machines with genuinely weak memory models, which is the only way the fences
+actually get exercised.
+
+Machines are donated hosts on a public compiler test farm. Identifying
+details are left out on purpose.
+
+  POWER    IBM Power10, 192 cores, Linux ppc64le
+  ARM      Apple M1, 8 cores, macOS arm64
+  RISC-V   SpacemiT X60, 8 cores, Linux riscv64
+
+Both trees are built from the same checkout on each machine, one at the
+baseline commit and one with the six patches applied, so the comparison is
+like for like.
+
+
+POWER10, ppc64le
+----------------------------------------------------------------------------
+src/cas_test.ml   (functional: cas success and failure, exchange, bool
+                   payloads, tagging through a branch, 1000 iteration loop)
+
+  all ok
+
+src/cas_par.ml    (4 domains, 400k cas retries to a shared counter, plus an
+                   exchange tag uniqueness check across domains)
+
+  all ok
+  all ok
+  all ok
+
+Emitted by the native compiler on the machine itself:
+
+  338:	ldarx	0, 0, 5
+  339:	cmpd	0, 9
+  341:	stdcx.	8, 0, 5
+  348:	isync
+  349:	lwsync
+  385:	ldarx	0, 0, 23
+  386:	cmpd	0, 26
+  388:	stdcx.	25, 0, 23
+  395:	isync
+  396:	lwsync
+
+The trailing lwsync is the release fence required by the OCaml memory model,
+which is stronger than C11 here: non-atomic stores must not be reordered
+before an atomic operation. See notes/isa-references.md.
+
+
+APPLE M1, macOS arm64
+----------------------------------------------------------------------------
+src/cas_test.ml
+
+  all ok
+
+src/cas_par.ml
+
+  all ok
+  all ok
+  all ok
+
+Emitted by the native compiler on the machine itself:
+
+  472:	ldaxr	x7, [x2]
+  475:	stlxr	w17, x5, [x2]
+  479:	clrex
+  481:	cset	x7, eq
+  482:	dmb	ishst
+  580:	ldaxr	x24, [x20]
+  583:	stlxr	w17, x22, [x20]
+  587:	clrex
+  589:	cset	x24, eq
+  590:	dmb	ishst
+
+Worth noting this is the macOS variant of the arm64 backend, not Linux, so it
+covers a second code path in the same emitter. The dmb ishst is the atomic
+store release barrier. clrex on the failure path is not architecturally
+required for an abandoned load-exclusive, but it drops the monitor rather
+than leaving it marked.
+
+
+RISC-V
+----------------------------------------------------------------------------
+Build was still in progress when this file was written. Results to be added.
+
+
+WHAT THIS DOES AND DOES NOT SHOW
+----------------------------------------------------------------------------
+Shows: the sequences assemble, execute, and give correct results under real
+concurrency on two weakly ordered architectures, including the LL/SC retry
+loops under genuine contention.
+
+Does not show: that the fences are minimal. A missing fence would likely
+show up here eventually; an unnecessary one would not show up at all. The
+argument for each fence being the right one rests on the ISA documents and on
+matching the conventions already accepted for fetch-and-add.

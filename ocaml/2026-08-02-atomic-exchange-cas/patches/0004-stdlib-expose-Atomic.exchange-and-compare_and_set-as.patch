@@ -1,7 +1,7 @@
 From <commit> Mon Sep 17 00:00:00 2001
 From: <author>
 Date: 2026-08-02
-Subject: [PATCH 4/5] stdlib: expose Atomic.exchange and compare_and_set as
+Subject: [PATCH 4/6] stdlib: expose Atomic.exchange and compare_and_set as
  externals
 
 ---

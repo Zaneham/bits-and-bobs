@@ -1,7 +1,7 @@
 From <commit> Mon Sep 17 00:00:00 2001
 From: <author>
 Date: 2026-08-02
-Subject: [PATCH 1/5] lambda,asmcomp: add native atomic exchange/cas primitives
+Subject: [PATCH 1/6] lambda,asmcomp: add native atomic exchange/cas primitives
  (still lowered to C calls)
 
 ---

@@ -20,6 +20,9 @@ C call and keeps the barrier.
 | Does it work? | `logs/qemu-and-native-runs.txt` |
 | Does it fire where it matters? | `logs/reach-dlambda.txt` |
 | Does TSan still get its instrumentation? | `logs/tsan-guard.txt` |
+| Does it work on real weakly ordered hardware? | `logs/real-hardware-runs.txt` |
+| Is it actually faster? | `logs/benchmarks-amd64.txt` |
+| The bug the tests all passed through | `notes/regalloc-scratch-bug.md` |
 | Exact tree these came from | `patches/` |
 
 ## The sequences
@@ -83,4 +86,48 @@ pointer payloads and GC pressure, so the barrier path stays live.
 
 `bench_cas.ml` mirrors the benchmark from #14575: single domain, two domains
 contended on one variable, two domains uncontended via `Atomic.make_contended`.
-Numbers to follow.
+It also carries a boxed case as a control, since a pointer valued atomic keeps
+the write barrier and should not move.
+
+## Real hardware
+
+`logs/real-hardware-runs.txt`. The qemu runs above cover encodings and logic
+but not ordering. These are on donated hosts of a public compiler test farm,
+both trees built from the same checkout on each machine:
+
+- IBM Power10, 192 cores, ppc64le
+- Apple M1, macOS arm64, which also covers the macOS variant of that emitter
+- SpacemiT X60, riscv64
+
+Functional and four domain stress tests pass on both machines finished so far,
+and the assembly is the same as the cross-built version.
+
+## Numbers
+
+`logs/benchmarks-amd64.txt`, min of 9 reps, 100M iterations.
+
+| case | baseline | branch |
+|---|---|---|
+| exchange, single domain | 1.36 | 0.51 |
+| cas, single domain | 1.16 | 0.40 |
+| exchange, 2 domains, uncontended | 0.99 | 0.79 |
+| cas, 2 domains, uncontended | 0.89 | 0.88 |
+| exchange, boxed, keeps the barrier | 1.48 | 1.50 |
+
+Contended is unchanged within run to run noise on this machine, and the log
+shows the spread rather than picking a flattering sample.
+
+## Two things the benchmark caught
+
+The first cut of the cas fast path was *slower* than the C call it replaced,
+1.16 to 1.56. An unlocked `cmpxchg` still serialises on the same port, so it
+buys nothing over the locked form. This is the same result #14575 found for
+unlocked `xadd`. Splitting it into a plain load, compare and store takes it to
+0.40. Exchange never had the problem because it was already doing that.
+
+Reading the generated assembly to find out why then turned up a real register
+allocation bug, written up in `notes/regalloc-scratch-bug.md`. The scratch
+register could be allocated to the same register as the address, destroying it
+before the store. Exchange had the same defect. Every test on every backend was
+passing at the time, by luck of allocation rather than by the constraint being
+expressed.
