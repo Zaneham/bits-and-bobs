@@ -9,7 +9,7 @@ statically known to be immediate the barrier does nothing, so the instruction is
 the whole job. That's the gate. Immediate goes native, maybe-pointer keeps the
 C call and keeps the barrier.
 
-*NOTE:* Much of this is a mix of my own writings and also output from raw voice to text fed into my local Ollama (Qwen coder) model and organised. If you have any questions about any part of this documentation please feel free to reach out. My general prompt usage will also be detailed in this repository. 
+*NOTE:* Much of this is a mix of my own writings and also output from raw voice to text fed into my local Ollama (Qwen coder) model and organised, with slightly less "uhms". If you have any questions about any part of this documentation please feel free to reach out. My general prompt usage will also be detailed in this repository. 
 
 ## What's worth looking at
 
