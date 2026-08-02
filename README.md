@@ -1,6 +1,12 @@
 # bits and bobs
 
-Raw output from my projects. Assembly dumps, disassembly, build logs, benchmark
+Kia ora! Hello! G'day! 
+
+Welcome to my bits and bobs repository. Bits and bobs is British slang for "many little things too numerous to list". 
+It was very common to hear my mum say it whenever she went out shopping and now it's something you may read whenever something terribly important regarding compilers pops up. 
+Funny how that works ey? 
+
+This contains raw output from my projects. Assembly dumps, disassembly, build logs, benchmark
 numbers, little test programs, and whatever notes went with them.
 
 It exists so I can link to the actual thing. A PR comment can hold a summary
