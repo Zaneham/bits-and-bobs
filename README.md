@@ -16,6 +16,11 @@ wherever the conversation is happening.
 
 It's not a portfolio. Things land here in whatever state they came out in.
 
+If you've come here from a link in a pull request, each entry lives under
+`<project>/<date>-<topic>/` and has its own README saying what it is and what's
+worth looking at. The full layout, and the one rule about nothing revealing
+hosts, users, networks or IPs, are below.
+
 ## How it's laid out
 
 ```
