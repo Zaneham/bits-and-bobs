@@ -305,7 +305,10 @@ camlCas_test.entry:
 	movl	$199, %eax
 	cmpq	$1, (%rdi)
 	jne	.L115
-	cmpxchgq	%rsi, (%rbx)
+	movq	(%rbx), %rdx
+	cmpq	%rdx, %rax
+	jne	.L116
+	movq	%rsi, (%rbx)
 	jmp	.L116
 .L115:
 	lock cmpxchgq	%rsi, (%rbx)
@@ -334,13 +337,16 @@ camlCas_test.entry:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rbx
 	movl	$85, %edi
 	movl	$21, %eax
-	movq	(%rsp), %rsi
+	movq	(%rsp), %rdx
 	cmpq	$1, (%rbx)
 	jne	.L119
-	cmpxchgq	%rdi, (%rsi)
+	movq	(%rdx), %rsi
+	cmpq	%rsi, %rax
+	jne	.L120
+	movq	%rdi, (%rdx)
 	jmp	.L120
 .L119:
-	lock cmpxchgq	%rdi, (%rsi)
+	lock cmpxchgq	%rdi, (%rdx)
 .L120:
 	sete	%al
 	movzbq	%al, %rax
@@ -366,13 +372,16 @@ camlCas_test.entry:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rbx
 	movq	$-13, %rdi
 	movl	$85, %eax
-	movq	(%rsp), %rsi
+	movq	(%rsp), %rdx
 	cmpq	$1, (%rbx)
 	jne	.L123
-	cmpxchgq	%rdi, (%rsi)
+	movq	(%rdx), %rsi
+	cmpq	%rsi, %rax
+	jne	.L124
+	movq	%rdi, (%rdx)
 	jmp	.L124
 .L123:
-	lock cmpxchgq	%rdi, (%rsi)
+	lock cmpxchgq	%rdi, (%rdx)
 .L124:
 	sete	%al
 	movzbq	%al, %rax
@@ -398,13 +407,16 @@ camlCas_test.entry:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rbx
 	movl	$1, %edi
 	movq	$-13, %rax
-	movq	(%rsp), %rsi
+	movq	(%rsp), %rdx
 	cmpq	$1, (%rbx)
 	jne	.L127
-	cmpxchgq	%rdi, (%rsi)
+	movq	(%rdx), %rsi
+	cmpq	%rsi, %rax
+	jne	.L128
+	movq	%rdi, (%rdx)
 	jmp	.L128
 .L127:
-	lock cmpxchgq	%rdi, (%rsi)
+	lock cmpxchgq	%rdi, (%rdx)
 .L128:
 	sete	%al
 	movzbq	%al, %rax
@@ -430,13 +442,16 @@ camlCas_test.entry:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rbx
 	movl	$1, %edi
 	movl	$1, %eax
-	movq	(%rsp), %rsi
+	movq	(%rsp), %rdx
 	cmpq	$1, (%rbx)
 	jne	.L131
-	cmpxchgq	%rdi, (%rsi)
+	movq	(%rdx), %rsi
+	cmpq	%rsi, %rax
+	jne	.L132
+	movq	%rdi, (%rdx)
 	jmp	.L132
 .L131:
-	lock cmpxchgq	%rdi, (%rsi)
+	lock cmpxchgq	%rdi, (%rdx)
 .L132:
 	sete	%al
 	movzbq	%al, %rax
@@ -461,15 +476,15 @@ camlCas_test.entry:
 .L134:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rax
 	movl	$11, %ebx
-	movq	(%rsp), %rdi
+	movq	(%rsp), %rsi
 	cmpq	$1, (%rax)
 	jne	.L135
-	movq	(%rdi), %rax
-	movq	%rbx, (%rdi)
-	movq	%rax, %rbx
+	movq	(%rsi), %rdi
+	movq	%rbx, (%rsi)
+	movq	%rdi, %rbx
 	jmp	.L136
 .L135:
-	xchg	%rbx, (%rdi)
+	xchg	%rbx, (%rsi)
 .L136:
 	cmpq	$1, %rbx
 	sete	%al
@@ -490,15 +505,15 @@ camlCas_test.entry:
 .L138:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rax
 	movq	$-1, %rbx
-	movq	(%rsp), %rdi
+	movq	(%rsp), %rsi
 	cmpq	$1, (%rax)
 	jne	.L139
-	movq	(%rdi), %rax
-	movq	%rbx, (%rdi)
-	movq	%rax, %rbx
+	movq	(%rsi), %rdi
+	movq	%rbx, (%rsi)
+	movq	%rdi, %rbx
 	jmp	.L140
 .L139:
-	xchg	%rbx, (%rdi)
+	xchg	%rbx, (%rsi)
 .L140:
 	cmpq	$11, %rbx
 	sete	%al
@@ -528,7 +543,10 @@ camlCas_test.entry:
 	movl	$3, %eax
 	cmpq	$1, (%rdi)
 	jne	.L144
-	cmpxchgq	%rsi, (%rbx)
+	movq	(%rbx), %rdx
+	cmpq	%rdx, %rax
+	jne	.L145
+	movq	%rsi, (%rbx)
 	jmp	.L145
 .L144:
 	lock cmpxchgq	%rsi, (%rbx)
@@ -557,13 +575,16 @@ camlCas_test.entry:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rbx
 	movl	$1, %edi
 	movl	$3, %eax
-	movq	(%rsp), %rsi
+	movq	(%rsp), %rdx
 	cmpq	$1, (%rbx)
 	jne	.L148
-	cmpxchgq	%rdi, (%rsi)
+	movq	(%rdx), %rsi
+	cmpq	%rsi, %rax
+	jne	.L149
+	movq	%rdi, (%rdx)
 	jmp	.L149
 .L148:
-	lock cmpxchgq	%rdi, (%rsi)
+	lock cmpxchgq	%rdi, (%rdx)
 .L149:
 	sete	%al
 	movzbq	%al, %rax
@@ -588,7 +609,10 @@ camlCas_test.entry:
 	movl	$3, %eax
 	cmpq	$1, (%rdi)
 	jne	.L152
-	cmpxchgq	%rsi, (%rbx)
+	movq	(%rbx), %rdx
+	cmpq	%rdx, %rax
+	jne	.L153
+	movq	%rsi, (%rbx)
 	jmp	.L153
 .L152:
 	lock cmpxchgq	%rsi, (%rbx)
@@ -614,37 +638,40 @@ camlCas_test.entry:
 	movq	camlCas_test.26@GOTPCREL(%rip), %rax
 	call	camlCas_test.check_279@PLT
 .L154:
-	movl	$1, %ebx
-	movl	$3, %edi
-	cmpq	$2001, %rdi
+	movl	$1, %edi
+	movl	$3, %ebx
+	cmpq	$2001, %rbx
 	jg	.L106
 .L107:
 	movq	caml_num_domains_running@GOTPCREL(%rip), %rsi
 	movl	$5, %edx
 	movl	$5, %eax
-	movq	(%rsp), %rcx
+	movq	(%rsp), %r8
 	cmpq	$1, (%rsi)
 	jne	.L155
-	cmpxchgq	%rdx, (%rcx)
+	movq	(%r8), %rcx
+	cmpq	%rcx, %rax
+	jne	.L156
+	movq	%rdx, (%r8)
 	jmp	.L156
 .L155:
-	lock cmpxchgq	%rdx, (%rcx)
+	lock cmpxchgq	%rdx, (%r8)
 .L156:
 	sete	%al
 	movzbq	%al, %rax
 	testq	%rax, %rax
 	je	.L108
-	addq	$2, %rbx
-.L108:
-	movq	%rdi, %rax
 	addq	$2, %rdi
+.L108:
+	movq	%rbx, %rax
+	addq	$2, %rbx
 	cmpq	$2001, %rax
 	je	.L106
 	cmpq	(%r14), %r15
 	ja	.L107
 	jmp	.L157
 .L106:
-	cmpq	$2001, %rbx
+	cmpq	$2001, %rdi
 	sete	%al
 	movzbq	%al, %rbx
 	salq	$1, %rbx

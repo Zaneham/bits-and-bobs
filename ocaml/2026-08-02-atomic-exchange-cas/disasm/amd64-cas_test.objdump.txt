@@ -39,7 +39,7 @@ Disassembly of section .text:
   70:	4c 8d 94 24 b8 fe ff 	lea    -0x148(%rsp),%r10
   77:	ff 
   78:	4d 3b 56 28          	cmp    0x28(%r14),%r10
-  7c:	0f 82 3f 05 00 00    	jb     5c1 <camlCas_test.entry+0x551>
+  7c:	0f 82 7e 05 00 00    	jb     600 <camlCas_test.entry+0x590>
   82:	48 83 ec 08          	sub    $0x8,%rsp
   86:	48 8b 35 00 00 00 00 	mov    0x0(%rip),%rsi        # 8d <camlCas_test.entry+0x1d>
   8d:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 94 <camlCas_test.entry+0x24>
@@ -57,313 +57,340 @@ Disassembly of section .text:
   c6:	be 55 00 00 00       	mov    $0x55,%esi
   cb:	b8 c7 00 00 00       	mov    $0xc7,%eax
   d0:	48 83 3f 01          	cmpq   $0x1,(%rdi)
-  d4:	75 06                	jne    dc <camlCas_test.entry+0x6c>
-  d6:	48 0f b1 33          	cmpxchg %rsi,(%rbx)
-  da:	eb 05                	jmp    e1 <camlCas_test.entry+0x71>
-  dc:	f0 48 0f b1 33       	lock cmpxchg %rsi,(%rbx)
-  e1:	0f 94 c0             	sete   %al
-  e4:	48 0f b6 c0          	movzbq %al,%rax
-  e8:	48 d1 e0             	shl    $1,%rax
-  eb:	48 ff c0             	inc    %rax
-  ee:	48 83 f8 01          	cmp    $0x1,%rax
-  f2:	0f 94 c0             	sete   %al
-  f5:	48 0f b6 d8          	movzbq %al,%rbx
-  f9:	48 d1 e3             	shl    $1,%rbx
-  fc:	48 ff c3             	inc    %rbx
-  ff:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 106 <camlCas_test.entry+0x96>
- 106:	e8 00 00 00 00       	call   10b <camlCas_test.entry+0x9b>
- 10b:	48 8b 04 24          	mov    (%rsp),%rax
- 10f:	48 8b 00             	mov    (%rax),%rax
- 112:	48 83 f8 15          	cmp    $0x15,%rax
- 116:	0f 94 c0             	sete   %al
- 119:	48 0f b6 c0          	movzbq %al,%rax
- 11d:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
- 122:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 129 <camlCas_test.entry+0xb9>
- 129:	e8 00 00 00 00       	call   12e <camlCas_test.entry+0xbe>
- 12e:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 135 <camlCas_test.entry+0xc5>
- 135:	bf 55 00 00 00       	mov    $0x55,%edi
- 13a:	b8 15 00 00 00       	mov    $0x15,%eax
- 13f:	48 8b 34 24          	mov    (%rsp),%rsi
- 143:	48 83 3b 01          	cmpq   $0x1,(%rbx)
- 147:	75 06                	jne    14f <camlCas_test.entry+0xdf>
- 149:	48 0f b1 3e          	cmpxchg %rdi,(%rsi)
- 14d:	eb 05                	jmp    154 <camlCas_test.entry+0xe4>
- 14f:	f0 48 0f b1 3e       	lock cmpxchg %rdi,(%rsi)
- 154:	0f 94 c0             	sete   %al
- 157:	48 0f b6 c0          	movzbq %al,%rax
- 15b:	48 d1 e0             	shl    $1,%rax
- 15e:	48 ff c0             	inc    %rax
- 161:	48 83 f8 03          	cmp    $0x3,%rax
- 165:	0f 94 c0             	sete   %al
- 168:	48 0f b6 d8          	movzbq %al,%rbx
- 16c:	48 d1 e3             	shl    $1,%rbx
- 16f:	48 ff c3             	inc    %rbx
- 172:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 179 <camlCas_test.entry+0x109>
- 179:	e8 00 00 00 00       	call   17e <camlCas_test.entry+0x10e>
- 17e:	48 8b 04 24          	mov    (%rsp),%rax
- 182:	48 8b 00             	mov    (%rax),%rax
- 185:	48 83 f8 55          	cmp    $0x55,%rax
- 189:	0f 94 c0             	sete   %al
- 18c:	48 0f b6 c0          	movzbq %al,%rax
- 190:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
- 195:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 19c <camlCas_test.entry+0x12c>
- 19c:	e8 00 00 00 00       	call   1a1 <camlCas_test.entry+0x131>
- 1a1:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 1a8 <camlCas_test.entry+0x138>
- 1a8:	48 c7 c7 f3 ff ff ff 	mov    $0xfffffffffffffff3,%rdi
- 1af:	b8 55 00 00 00       	mov    $0x55,%eax
- 1b4:	48 8b 34 24          	mov    (%rsp),%rsi
- 1b8:	48 83 3b 01          	cmpq   $0x1,(%rbx)
- 1bc:	75 06                	jne    1c4 <camlCas_test.entry+0x154>
- 1be:	48 0f b1 3e          	cmpxchg %rdi,(%rsi)
- 1c2:	eb 05                	jmp    1c9 <camlCas_test.entry+0x159>
- 1c4:	f0 48 0f b1 3e       	lock cmpxchg %rdi,(%rsi)
- 1c9:	0f 94 c0             	sete   %al
- 1cc:	48 0f b6 c0          	movzbq %al,%rax
- 1d0:	48 d1 e0             	shl    $1,%rax
- 1d3:	48 ff c0             	inc    %rax
- 1d6:	48 83 f8 03          	cmp    $0x3,%rax
- 1da:	0f 94 c0             	sete   %al
- 1dd:	48 0f b6 d8          	movzbq %al,%rbx
- 1e1:	48 d1 e3             	shl    $1,%rbx
- 1e4:	48 ff c3             	inc    %rbx
- 1e7:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 1ee <camlCas_test.entry+0x17e>
- 1ee:	e8 00 00 00 00       	call   1f3 <camlCas_test.entry+0x183>
- 1f3:	48 8b 04 24          	mov    (%rsp),%rax
- 1f7:	48 8b 00             	mov    (%rax),%rax
- 1fa:	48 83 f8 f3          	cmp    $0xfffffffffffffff3,%rax
- 1fe:	0f 94 c0             	sete   %al
- 201:	48 0f b6 c0          	movzbq %al,%rax
- 205:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
- 20a:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 211 <camlCas_test.entry+0x1a1>
- 211:	e8 00 00 00 00       	call   216 <camlCas_test.entry+0x1a6>
- 216:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 21d <camlCas_test.entry+0x1ad>
- 21d:	bf 01 00 00 00       	mov    $0x1,%edi
- 222:	48 c7 c0 f3 ff ff ff 	mov    $0xfffffffffffffff3,%rax
- 229:	48 8b 34 24          	mov    (%rsp),%rsi
- 22d:	48 83 3b 01          	cmpq   $0x1,(%rbx)
- 231:	75 06                	jne    239 <camlCas_test.entry+0x1c9>
- 233:	48 0f b1 3e          	cmpxchg %rdi,(%rsi)
- 237:	eb 05                	jmp    23e <camlCas_test.entry+0x1ce>
- 239:	f0 48 0f b1 3e       	lock cmpxchg %rdi,(%rsi)
- 23e:	0f 94 c0             	sete   %al
- 241:	48 0f b6 c0          	movzbq %al,%rax
- 245:	48 d1 e0             	shl    $1,%rax
- 248:	48 ff c0             	inc    %rax
- 24b:	48 83 f8 03          	cmp    $0x3,%rax
- 24f:	0f 94 c0             	sete   %al
- 252:	48 0f b6 d8          	movzbq %al,%rbx
- 256:	48 d1 e3             	shl    $1,%rbx
- 259:	48 ff c3             	inc    %rbx
- 25c:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 263 <camlCas_test.entry+0x1f3>
- 263:	e8 00 00 00 00       	call   268 <camlCas_test.entry+0x1f8>
- 268:	48 8b 04 24          	mov    (%rsp),%rax
- 26c:	48 8b 00             	mov    (%rax),%rax
- 26f:	48 83 f8 01          	cmp    $0x1,%rax
- 273:	0f 94 c0             	sete   %al
- 276:	48 0f b6 c0          	movzbq %al,%rax
- 27a:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
- 27f:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 286 <camlCas_test.entry+0x216>
- 286:	e8 00 00 00 00       	call   28b <camlCas_test.entry+0x21b>
- 28b:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 292 <camlCas_test.entry+0x222>
- 292:	bf 01 00 00 00       	mov    $0x1,%edi
- 297:	b8 01 00 00 00       	mov    $0x1,%eax
- 29c:	48 8b 34 24          	mov    (%rsp),%rsi
- 2a0:	48 83 3b 01          	cmpq   $0x1,(%rbx)
- 2a4:	75 06                	jne    2ac <camlCas_test.entry+0x23c>
- 2a6:	48 0f b1 3e          	cmpxchg %rdi,(%rsi)
- 2aa:	eb 05                	jmp    2b1 <camlCas_test.entry+0x241>
- 2ac:	f0 48 0f b1 3e       	lock cmpxchg %rdi,(%rsi)
- 2b1:	0f 94 c0             	sete   %al
- 2b4:	48 0f b6 c0          	movzbq %al,%rax
- 2b8:	48 d1 e0             	shl    $1,%rax
- 2bb:	48 ff c0             	inc    %rax
- 2be:	48 83 f8 03          	cmp    $0x3,%rax
- 2c2:	0f 94 c0             	sete   %al
- 2c5:	48 0f b6 d8          	movzbq %al,%rbx
- 2c9:	48 d1 e3             	shl    $1,%rbx
- 2cc:	48 ff c3             	inc    %rbx
- 2cf:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 2d6 <camlCas_test.entry+0x266>
- 2d6:	e8 00 00 00 00       	call   2db <camlCas_test.entry+0x26b>
- 2db:	48 8b 04 24          	mov    (%rsp),%rax
- 2df:	48 8b 00             	mov    (%rax),%rax
- 2e2:	48 83 f8 01          	cmp    $0x1,%rax
- 2e6:	0f 94 c0             	sete   %al
- 2e9:	48 0f b6 c0          	movzbq %al,%rax
- 2ed:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+  d4:	75 0d                	jne    e3 <camlCas_test.entry+0x73>
+  d6:	48 8b 13             	mov    (%rbx),%rdx
+  d9:	48 39 d0             	cmp    %rdx,%rax
+  dc:	75 0a                	jne    e8 <camlCas_test.entry+0x78>
+  de:	48 89 33             	mov    %rsi,(%rbx)
+  e1:	eb 05                	jmp    e8 <camlCas_test.entry+0x78>
+  e3:	f0 48 0f b1 33       	lock cmpxchg %rsi,(%rbx)
+  e8:	0f 94 c0             	sete   %al
+  eb:	48 0f b6 c0          	movzbq %al,%rax
+  ef:	48 d1 e0             	shl    $1,%rax
+  f2:	48 ff c0             	inc    %rax
+  f5:	48 83 f8 01          	cmp    $0x1,%rax
+  f9:	0f 94 c0             	sete   %al
+  fc:	48 0f b6 d8          	movzbq %al,%rbx
+ 100:	48 d1 e3             	shl    $1,%rbx
+ 103:	48 ff c3             	inc    %rbx
+ 106:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 10d <camlCas_test.entry+0x9d>
+ 10d:	e8 00 00 00 00       	call   112 <camlCas_test.entry+0xa2>
+ 112:	48 8b 04 24          	mov    (%rsp),%rax
+ 116:	48 8b 00             	mov    (%rax),%rax
+ 119:	48 83 f8 15          	cmp    $0x15,%rax
+ 11d:	0f 94 c0             	sete   %al
+ 120:	48 0f b6 c0          	movzbq %al,%rax
+ 124:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 129:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 130 <camlCas_test.entry+0xc0>
+ 130:	e8 00 00 00 00       	call   135 <camlCas_test.entry+0xc5>
+ 135:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 13c <camlCas_test.entry+0xcc>
+ 13c:	bf 55 00 00 00       	mov    $0x55,%edi
+ 141:	b8 15 00 00 00       	mov    $0x15,%eax
+ 146:	48 8b 14 24          	mov    (%rsp),%rdx
+ 14a:	48 83 3b 01          	cmpq   $0x1,(%rbx)
+ 14e:	75 0d                	jne    15d <camlCas_test.entry+0xed>
+ 150:	48 8b 32             	mov    (%rdx),%rsi
+ 153:	48 39 f0             	cmp    %rsi,%rax
+ 156:	75 0a                	jne    162 <camlCas_test.entry+0xf2>
+ 158:	48 89 3a             	mov    %rdi,(%rdx)
+ 15b:	eb 05                	jmp    162 <camlCas_test.entry+0xf2>
+ 15d:	f0 48 0f b1 3a       	lock cmpxchg %rdi,(%rdx)
+ 162:	0f 94 c0             	sete   %al
+ 165:	48 0f b6 c0          	movzbq %al,%rax
+ 169:	48 d1 e0             	shl    $1,%rax
+ 16c:	48 ff c0             	inc    %rax
+ 16f:	48 83 f8 03          	cmp    $0x3,%rax
+ 173:	0f 94 c0             	sete   %al
+ 176:	48 0f b6 d8          	movzbq %al,%rbx
+ 17a:	48 d1 e3             	shl    $1,%rbx
+ 17d:	48 ff c3             	inc    %rbx
+ 180:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 187 <camlCas_test.entry+0x117>
+ 187:	e8 00 00 00 00       	call   18c <camlCas_test.entry+0x11c>
+ 18c:	48 8b 04 24          	mov    (%rsp),%rax
+ 190:	48 8b 00             	mov    (%rax),%rax
+ 193:	48 83 f8 55          	cmp    $0x55,%rax
+ 197:	0f 94 c0             	sete   %al
+ 19a:	48 0f b6 c0          	movzbq %al,%rax
+ 19e:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 1a3:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 1aa <camlCas_test.entry+0x13a>
+ 1aa:	e8 00 00 00 00       	call   1af <camlCas_test.entry+0x13f>
+ 1af:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 1b6 <camlCas_test.entry+0x146>
+ 1b6:	48 c7 c7 f3 ff ff ff 	mov    $0xfffffffffffffff3,%rdi
+ 1bd:	b8 55 00 00 00       	mov    $0x55,%eax
+ 1c2:	48 8b 14 24          	mov    (%rsp),%rdx
+ 1c6:	48 83 3b 01          	cmpq   $0x1,(%rbx)
+ 1ca:	75 0d                	jne    1d9 <camlCas_test.entry+0x169>
+ 1cc:	48 8b 32             	mov    (%rdx),%rsi
+ 1cf:	48 39 f0             	cmp    %rsi,%rax
+ 1d2:	75 0a                	jne    1de <camlCas_test.entry+0x16e>
+ 1d4:	48 89 3a             	mov    %rdi,(%rdx)
+ 1d7:	eb 05                	jmp    1de <camlCas_test.entry+0x16e>
+ 1d9:	f0 48 0f b1 3a       	lock cmpxchg %rdi,(%rdx)
+ 1de:	0f 94 c0             	sete   %al
+ 1e1:	48 0f b6 c0          	movzbq %al,%rax
+ 1e5:	48 d1 e0             	shl    $1,%rax
+ 1e8:	48 ff c0             	inc    %rax
+ 1eb:	48 83 f8 03          	cmp    $0x3,%rax
+ 1ef:	0f 94 c0             	sete   %al
+ 1f2:	48 0f b6 d8          	movzbq %al,%rbx
+ 1f6:	48 d1 e3             	shl    $1,%rbx
+ 1f9:	48 ff c3             	inc    %rbx
+ 1fc:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 203 <camlCas_test.entry+0x193>
+ 203:	e8 00 00 00 00       	call   208 <camlCas_test.entry+0x198>
+ 208:	48 8b 04 24          	mov    (%rsp),%rax
+ 20c:	48 8b 00             	mov    (%rax),%rax
+ 20f:	48 83 f8 f3          	cmp    $0xfffffffffffffff3,%rax
+ 213:	0f 94 c0             	sete   %al
+ 216:	48 0f b6 c0          	movzbq %al,%rax
+ 21a:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 21f:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 226 <camlCas_test.entry+0x1b6>
+ 226:	e8 00 00 00 00       	call   22b <camlCas_test.entry+0x1bb>
+ 22b:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 232 <camlCas_test.entry+0x1c2>
+ 232:	bf 01 00 00 00       	mov    $0x1,%edi
+ 237:	48 c7 c0 f3 ff ff ff 	mov    $0xfffffffffffffff3,%rax
+ 23e:	48 8b 14 24          	mov    (%rsp),%rdx
+ 242:	48 83 3b 01          	cmpq   $0x1,(%rbx)
+ 246:	75 0d                	jne    255 <camlCas_test.entry+0x1e5>
+ 248:	48 8b 32             	mov    (%rdx),%rsi
+ 24b:	48 39 f0             	cmp    %rsi,%rax
+ 24e:	75 0a                	jne    25a <camlCas_test.entry+0x1ea>
+ 250:	48 89 3a             	mov    %rdi,(%rdx)
+ 253:	eb 05                	jmp    25a <camlCas_test.entry+0x1ea>
+ 255:	f0 48 0f b1 3a       	lock cmpxchg %rdi,(%rdx)
+ 25a:	0f 94 c0             	sete   %al
+ 25d:	48 0f b6 c0          	movzbq %al,%rax
+ 261:	48 d1 e0             	shl    $1,%rax
+ 264:	48 ff c0             	inc    %rax
+ 267:	48 83 f8 03          	cmp    $0x3,%rax
+ 26b:	0f 94 c0             	sete   %al
+ 26e:	48 0f b6 d8          	movzbq %al,%rbx
+ 272:	48 d1 e3             	shl    $1,%rbx
+ 275:	48 ff c3             	inc    %rbx
+ 278:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 27f <camlCas_test.entry+0x20f>
+ 27f:	e8 00 00 00 00       	call   284 <camlCas_test.entry+0x214>
+ 284:	48 8b 04 24          	mov    (%rsp),%rax
+ 288:	48 8b 00             	mov    (%rax),%rax
+ 28b:	48 83 f8 01          	cmp    $0x1,%rax
+ 28f:	0f 94 c0             	sete   %al
+ 292:	48 0f b6 c0          	movzbq %al,%rax
+ 296:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 29b:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 2a2 <camlCas_test.entry+0x232>
+ 2a2:	e8 00 00 00 00       	call   2a7 <camlCas_test.entry+0x237>
+ 2a7:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 2ae <camlCas_test.entry+0x23e>
+ 2ae:	bf 01 00 00 00       	mov    $0x1,%edi
+ 2b3:	b8 01 00 00 00       	mov    $0x1,%eax
+ 2b8:	48 8b 14 24          	mov    (%rsp),%rdx
+ 2bc:	48 83 3b 01          	cmpq   $0x1,(%rbx)
+ 2c0:	75 0d                	jne    2cf <camlCas_test.entry+0x25f>
+ 2c2:	48 8b 32             	mov    (%rdx),%rsi
+ 2c5:	48 39 f0             	cmp    %rsi,%rax
+ 2c8:	75 0a                	jne    2d4 <camlCas_test.entry+0x264>
+ 2ca:	48 89 3a             	mov    %rdi,(%rdx)
+ 2cd:	eb 05                	jmp    2d4 <camlCas_test.entry+0x264>
+ 2cf:	f0 48 0f b1 3a       	lock cmpxchg %rdi,(%rdx)
+ 2d4:	0f 94 c0             	sete   %al
+ 2d7:	48 0f b6 c0          	movzbq %al,%rax
+ 2db:	48 d1 e0             	shl    $1,%rax
+ 2de:	48 ff c0             	inc    %rax
+ 2e1:	48 83 f8 03          	cmp    $0x3,%rax
+ 2e5:	0f 94 c0             	sete   %al
+ 2e8:	48 0f b6 d8          	movzbq %al,%rbx
+ 2ec:	48 d1 e3             	shl    $1,%rbx
+ 2ef:	48 ff c3             	inc    %rbx
  2f2:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 2f9 <camlCas_test.entry+0x289>
  2f9:	e8 00 00 00 00       	call   2fe <camlCas_test.entry+0x28e>
- 2fe:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 305 <camlCas_test.entry+0x295>
- 305:	bb 0b 00 00 00       	mov    $0xb,%ebx
- 30a:	48 8b 3c 24          	mov    (%rsp),%rdi
- 30e:	48 83 38 01          	cmpq   $0x1,(%rax)
- 312:	75 0b                	jne    31f <camlCas_test.entry+0x2af>
- 314:	48 8b 07             	mov    (%rdi),%rax
- 317:	48 89 1f             	mov    %rbx,(%rdi)
- 31a:	48 89 c3             	mov    %rax,%rbx
- 31d:	eb 03                	jmp    322 <camlCas_test.entry+0x2b2>
- 31f:	48 87 1f             	xchg   %rbx,(%rdi)
- 322:	48 83 fb 01          	cmp    $0x1,%rbx
- 326:	0f 94 c0             	sete   %al
- 329:	48 0f b6 d8          	movzbq %al,%rbx
- 32d:	48 d1 e3             	shl    $1,%rbx
- 330:	48 ff c3             	inc    %rbx
- 333:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 33a <camlCas_test.entry+0x2ca>
- 33a:	e8 00 00 00 00       	call   33f <camlCas_test.entry+0x2cf>
- 33f:	48 8b 04 24          	mov    (%rsp),%rax
- 343:	48 8b 00             	mov    (%rax),%rax
- 346:	48 83 f8 0b          	cmp    $0xb,%rax
- 34a:	0f 94 c0             	sete   %al
- 34d:	48 0f b6 c0          	movzbq %al,%rax
- 351:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 2fe:	48 8b 04 24          	mov    (%rsp),%rax
+ 302:	48 8b 00             	mov    (%rax),%rax
+ 305:	48 83 f8 01          	cmp    $0x1,%rax
+ 309:	0f 94 c0             	sete   %al
+ 30c:	48 0f b6 c0          	movzbq %al,%rax
+ 310:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 315:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 31c <camlCas_test.entry+0x2ac>
+ 31c:	e8 00 00 00 00       	call   321 <camlCas_test.entry+0x2b1>
+ 321:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 328 <camlCas_test.entry+0x2b8>
+ 328:	bb 0b 00 00 00       	mov    $0xb,%ebx
+ 32d:	48 8b 34 24          	mov    (%rsp),%rsi
+ 331:	48 83 38 01          	cmpq   $0x1,(%rax)
+ 335:	75 0b                	jne    342 <camlCas_test.entry+0x2d2>
+ 337:	48 8b 3e             	mov    (%rsi),%rdi
+ 33a:	48 89 1e             	mov    %rbx,(%rsi)
+ 33d:	48 89 fb             	mov    %rdi,%rbx
+ 340:	eb 03                	jmp    345 <camlCas_test.entry+0x2d5>
+ 342:	48 87 1e             	xchg   %rbx,(%rsi)
+ 345:	48 83 fb 01          	cmp    $0x1,%rbx
+ 349:	0f 94 c0             	sete   %al
+ 34c:	48 0f b6 d8          	movzbq %al,%rbx
+ 350:	48 d1 e3             	shl    $1,%rbx
+ 353:	48 ff c3             	inc    %rbx
  356:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 35d <camlCas_test.entry+0x2ed>
  35d:	e8 00 00 00 00       	call   362 <camlCas_test.entry+0x2f2>
- 362:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 369 <camlCas_test.entry+0x2f9>
- 369:	48 c7 c3 ff ff ff ff 	mov    $0xffffffffffffffff,%rbx
- 370:	48 8b 3c 24          	mov    (%rsp),%rdi
- 374:	48 83 38 01          	cmpq   $0x1,(%rax)
- 378:	75 0b                	jne    385 <camlCas_test.entry+0x315>
- 37a:	48 8b 07             	mov    (%rdi),%rax
- 37d:	48 89 1f             	mov    %rbx,(%rdi)
- 380:	48 89 c3             	mov    %rax,%rbx
- 383:	eb 03                	jmp    388 <camlCas_test.entry+0x318>
- 385:	48 87 1f             	xchg   %rbx,(%rdi)
- 388:	48 83 fb 0b          	cmp    $0xb,%rbx
- 38c:	0f 94 c0             	sete   %al
- 38f:	48 0f b6 d8          	movzbq %al,%rbx
- 393:	48 d1 e3             	shl    $1,%rbx
- 396:	48 ff c3             	inc    %rbx
- 399:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 3a0 <camlCas_test.entry+0x330>
- 3a0:	e8 00 00 00 00       	call   3a5 <camlCas_test.entry+0x335>
- 3a5:	48 8b 04 24          	mov    (%rsp),%rax
- 3a9:	48 8b 00             	mov    (%rax),%rax
- 3ac:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
- 3b0:	0f 94 c0             	sete   %al
- 3b3:	48 0f b6 c0          	movzbq %al,%rax
- 3b7:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 362:	48 8b 04 24          	mov    (%rsp),%rax
+ 366:	48 8b 00             	mov    (%rax),%rax
+ 369:	48 83 f8 0b          	cmp    $0xb,%rax
+ 36d:	0f 94 c0             	sete   %al
+ 370:	48 0f b6 c0          	movzbq %al,%rax
+ 374:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 379:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 380 <camlCas_test.entry+0x310>
+ 380:	e8 00 00 00 00       	call   385 <camlCas_test.entry+0x315>
+ 385:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 38c <camlCas_test.entry+0x31c>
+ 38c:	48 c7 c3 ff ff ff ff 	mov    $0xffffffffffffffff,%rbx
+ 393:	48 8b 34 24          	mov    (%rsp),%rsi
+ 397:	48 83 38 01          	cmpq   $0x1,(%rax)
+ 39b:	75 0b                	jne    3a8 <camlCas_test.entry+0x338>
+ 39d:	48 8b 3e             	mov    (%rsi),%rdi
+ 3a0:	48 89 1e             	mov    %rbx,(%rsi)
+ 3a3:	48 89 fb             	mov    %rdi,%rbx
+ 3a6:	eb 03                	jmp    3ab <camlCas_test.entry+0x33b>
+ 3a8:	48 87 1e             	xchg   %rbx,(%rsi)
+ 3ab:	48 83 fb 0b          	cmp    $0xb,%rbx
+ 3af:	0f 94 c0             	sete   %al
+ 3b2:	48 0f b6 d8          	movzbq %al,%rbx
+ 3b6:	48 d1 e3             	shl    $1,%rbx
+ 3b9:	48 ff c3             	inc    %rbx
  3bc:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 3c3 <camlCas_test.entry+0x353>
  3c3:	e8 00 00 00 00       	call   3c8 <camlCas_test.entry+0x358>
- 3c8:	e8 00 00 00 00       	call   3cd <camlCas_test.entry+0x35d>
- 3cd:	49 8d 5f 08          	lea    0x8(%r15),%rbx
- 3d1:	48 89 1c 24          	mov    %rbx,(%rsp)
- 3d5:	48 c7 43 f8 00 04 00 	movq   $0x400,-0x8(%rbx)
- 3dc:	00 
- 3dd:	48 c7 03 03 00 00 00 	movq   $0x3,(%rbx)
- 3e4:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 3eb <camlCas_test.entry+0x37b>
- 3eb:	be 01 00 00 00       	mov    $0x1,%esi
- 3f0:	b8 03 00 00 00       	mov    $0x3,%eax
- 3f5:	48 83 3f 01          	cmpq   $0x1,(%rdi)
- 3f9:	75 06                	jne    401 <camlCas_test.entry+0x391>
- 3fb:	48 0f b1 33          	cmpxchg %rsi,(%rbx)
- 3ff:	eb 05                	jmp    406 <camlCas_test.entry+0x396>
- 401:	f0 48 0f b1 33       	lock cmpxchg %rsi,(%rbx)
- 406:	0f 94 c0             	sete   %al
- 409:	48 0f b6 c0          	movzbq %al,%rax
- 40d:	48 d1 e0             	shl    $1,%rax
- 410:	48 ff c0             	inc    %rax
- 413:	48 83 f8 03          	cmp    $0x3,%rax
- 417:	0f 94 c0             	sete   %al
- 41a:	48 0f b6 d8          	movzbq %al,%rbx
- 41e:	48 d1 e3             	shl    $1,%rbx
- 421:	48 ff c3             	inc    %rbx
- 424:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 42b <camlCas_test.entry+0x3bb>
- 42b:	e8 00 00 00 00       	call   430 <camlCas_test.entry+0x3c0>
- 430:	48 8b 04 24          	mov    (%rsp),%rax
- 434:	48 8b 00             	mov    (%rax),%rax
- 437:	48 83 f8 01          	cmp    $0x1,%rax
- 43b:	0f 94 c0             	sete   %al
- 43e:	48 0f b6 c0          	movzbq %al,%rax
- 442:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
- 447:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 44e <camlCas_test.entry+0x3de>
- 44e:	e8 00 00 00 00       	call   453 <camlCas_test.entry+0x3e3>
- 453:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 45a <camlCas_test.entry+0x3ea>
- 45a:	bf 01 00 00 00       	mov    $0x1,%edi
- 45f:	b8 03 00 00 00       	mov    $0x3,%eax
- 464:	48 8b 34 24          	mov    (%rsp),%rsi
- 468:	48 83 3b 01          	cmpq   $0x1,(%rbx)
- 46c:	75 06                	jne    474 <camlCas_test.entry+0x404>
- 46e:	48 0f b1 3e          	cmpxchg %rdi,(%rsi)
- 472:	eb 05                	jmp    479 <camlCas_test.entry+0x409>
- 474:	f0 48 0f b1 3e       	lock cmpxchg %rdi,(%rsi)
- 479:	0f 94 c0             	sete   %al
- 47c:	48 0f b6 c0          	movzbq %al,%rax
- 480:	48 d1 e0             	shl    $1,%rax
- 483:	48 ff c0             	inc    %rax
- 486:	48 83 f8 01          	cmp    $0x1,%rax
- 48a:	0f 94 c0             	sete   %al
- 48d:	48 0f b6 d8          	movzbq %al,%rbx
- 491:	48 d1 e3             	shl    $1,%rbx
- 494:	48 ff c3             	inc    %rbx
- 497:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 49e <camlCas_test.entry+0x42e>
- 49e:	e8 00 00 00 00       	call   4a3 <camlCas_test.entry+0x433>
- 4a3:	e8 00 00 00 00       	call   4a8 <camlCas_test.entry+0x438>
- 4a8:	49 8d 5f 08          	lea    0x8(%r15),%rbx
- 4ac:	48 89 1c 24          	mov    %rbx,(%rsp)
- 4b0:	48 c7 43 f8 00 04 00 	movq   $0x400,-0x8(%rbx)
- 4b7:	00 
- 4b8:	48 c7 03 03 00 00 00 	movq   $0x3,(%rbx)
- 4bf:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 4c6 <camlCas_test.entry+0x456>
- 4c6:	be 05 00 00 00       	mov    $0x5,%esi
- 4cb:	b8 03 00 00 00       	mov    $0x3,%eax
- 4d0:	48 83 3f 01          	cmpq   $0x1,(%rdi)
- 4d4:	75 06                	jne    4dc <camlCas_test.entry+0x46c>
- 4d6:	48 0f b1 33          	cmpxchg %rsi,(%rbx)
- 4da:	eb 05                	jmp    4e1 <camlCas_test.entry+0x471>
- 4dc:	f0 48 0f b1 33       	lock cmpxchg %rsi,(%rbx)
- 4e1:	0f 94 c0             	sete   %al
- 4e4:	48 0f b6 c0          	movzbq %al,%rax
- 4e8:	48 85 c0             	test   %rax,%rax
- 4eb:	74 09                	je     4f6 <camlCas_test.entry+0x486>
- 4ed:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 4f4 <camlCas_test.entry+0x484>
- 4f4:	eb 07                	jmp    4fd <camlCas_test.entry+0x48d>
- 4f6:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 4fd <camlCas_test.entry+0x48d>
- 4fd:	48 8b 35 00 00 00 00 	mov    0x0(%rip),%rsi        # 504 <camlCas_test.entry+0x494>
- 504:	48 89 e3             	mov    %rsp,%rbx
- 507:	49 8b 66 40          	mov    0x40(%r14),%rsp
- 50b:	e8 00 00 00 00       	call   510 <camlCas_test.entry+0x4a0>
- 510:	48 89 dc             	mov    %rbx,%rsp
- 513:	48 89 c3             	mov    %rax,%rbx
- 516:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 51d <camlCas_test.entry+0x4ad>
- 51d:	e8 00 00 00 00       	call   522 <camlCas_test.entry+0x4b2>
- 522:	bb 01 00 00 00       	mov    $0x1,%ebx
- 527:	bf 03 00 00 00       	mov    $0x3,%edi
- 52c:	48 81 ff d1 07 00 00 	cmp    $0x7d1,%rdi
- 533:	7f 4c                	jg     581 <camlCas_test.entry+0x511>
+ 3c8:	48 8b 04 24          	mov    (%rsp),%rax
+ 3cc:	48 8b 00             	mov    (%rax),%rax
+ 3cf:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+ 3d3:	0f 94 c0             	sete   %al
+ 3d6:	48 0f b6 c0          	movzbq %al,%rax
+ 3da:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 3df:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 3e6 <camlCas_test.entry+0x376>
+ 3e6:	e8 00 00 00 00       	call   3eb <camlCas_test.entry+0x37b>
+ 3eb:	e8 00 00 00 00       	call   3f0 <camlCas_test.entry+0x380>
+ 3f0:	49 8d 5f 08          	lea    0x8(%r15),%rbx
+ 3f4:	48 89 1c 24          	mov    %rbx,(%rsp)
+ 3f8:	48 c7 43 f8 00 04 00 	movq   $0x400,-0x8(%rbx)
+ 3ff:	00 
+ 400:	48 c7 03 03 00 00 00 	movq   $0x3,(%rbx)
+ 407:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 40e <camlCas_test.entry+0x39e>
+ 40e:	be 01 00 00 00       	mov    $0x1,%esi
+ 413:	b8 03 00 00 00       	mov    $0x3,%eax
+ 418:	48 83 3f 01          	cmpq   $0x1,(%rdi)
+ 41c:	75 0d                	jne    42b <camlCas_test.entry+0x3bb>
+ 41e:	48 8b 13             	mov    (%rbx),%rdx
+ 421:	48 39 d0             	cmp    %rdx,%rax
+ 424:	75 0a                	jne    430 <camlCas_test.entry+0x3c0>
+ 426:	48 89 33             	mov    %rsi,(%rbx)
+ 429:	eb 05                	jmp    430 <camlCas_test.entry+0x3c0>
+ 42b:	f0 48 0f b1 33       	lock cmpxchg %rsi,(%rbx)
+ 430:	0f 94 c0             	sete   %al
+ 433:	48 0f b6 c0          	movzbq %al,%rax
+ 437:	48 d1 e0             	shl    $1,%rax
+ 43a:	48 ff c0             	inc    %rax
+ 43d:	48 83 f8 03          	cmp    $0x3,%rax
+ 441:	0f 94 c0             	sete   %al
+ 444:	48 0f b6 d8          	movzbq %al,%rbx
+ 448:	48 d1 e3             	shl    $1,%rbx
+ 44b:	48 ff c3             	inc    %rbx
+ 44e:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 455 <camlCas_test.entry+0x3e5>
+ 455:	e8 00 00 00 00       	call   45a <camlCas_test.entry+0x3ea>
+ 45a:	48 8b 04 24          	mov    (%rsp),%rax
+ 45e:	48 8b 00             	mov    (%rax),%rax
+ 461:	48 83 f8 01          	cmp    $0x1,%rax
+ 465:	0f 94 c0             	sete   %al
+ 468:	48 0f b6 c0          	movzbq %al,%rax
+ 46c:	48 8d 5c 00 01       	lea    0x1(%rax,%rax,1),%rbx
+ 471:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 478 <camlCas_test.entry+0x408>
+ 478:	e8 00 00 00 00       	call   47d <camlCas_test.entry+0x40d>
+ 47d:	48 8b 1d 00 00 00 00 	mov    0x0(%rip),%rbx        # 484 <camlCas_test.entry+0x414>
+ 484:	bf 01 00 00 00       	mov    $0x1,%edi
+ 489:	b8 03 00 00 00       	mov    $0x3,%eax
+ 48e:	48 8b 14 24          	mov    (%rsp),%rdx
+ 492:	48 83 3b 01          	cmpq   $0x1,(%rbx)
+ 496:	75 0d                	jne    4a5 <camlCas_test.entry+0x435>
+ 498:	48 8b 32             	mov    (%rdx),%rsi
+ 49b:	48 39 f0             	cmp    %rsi,%rax
+ 49e:	75 0a                	jne    4aa <camlCas_test.entry+0x43a>
+ 4a0:	48 89 3a             	mov    %rdi,(%rdx)
+ 4a3:	eb 05                	jmp    4aa <camlCas_test.entry+0x43a>
+ 4a5:	f0 48 0f b1 3a       	lock cmpxchg %rdi,(%rdx)
+ 4aa:	0f 94 c0             	sete   %al
+ 4ad:	48 0f b6 c0          	movzbq %al,%rax
+ 4b1:	48 d1 e0             	shl    $1,%rax
+ 4b4:	48 ff c0             	inc    %rax
+ 4b7:	48 83 f8 01          	cmp    $0x1,%rax
+ 4bb:	0f 94 c0             	sete   %al
+ 4be:	48 0f b6 d8          	movzbq %al,%rbx
+ 4c2:	48 d1 e3             	shl    $1,%rbx
+ 4c5:	48 ff c3             	inc    %rbx
+ 4c8:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 4cf <camlCas_test.entry+0x45f>
+ 4cf:	e8 00 00 00 00       	call   4d4 <camlCas_test.entry+0x464>
+ 4d4:	e8 00 00 00 00       	call   4d9 <camlCas_test.entry+0x469>
+ 4d9:	49 8d 5f 08          	lea    0x8(%r15),%rbx
+ 4dd:	48 89 1c 24          	mov    %rbx,(%rsp)
+ 4e1:	48 c7 43 f8 00 04 00 	movq   $0x400,-0x8(%rbx)
+ 4e8:	00 
+ 4e9:	48 c7 03 03 00 00 00 	movq   $0x3,(%rbx)
+ 4f0:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 4f7 <camlCas_test.entry+0x487>
+ 4f7:	be 05 00 00 00       	mov    $0x5,%esi
+ 4fc:	b8 03 00 00 00       	mov    $0x3,%eax
+ 501:	48 83 3f 01          	cmpq   $0x1,(%rdi)
+ 505:	75 0d                	jne    514 <camlCas_test.entry+0x4a4>
+ 507:	48 8b 13             	mov    (%rbx),%rdx
+ 50a:	48 39 d0             	cmp    %rdx,%rax
+ 50d:	75 0a                	jne    519 <camlCas_test.entry+0x4a9>
+ 50f:	48 89 33             	mov    %rsi,(%rbx)
+ 512:	eb 05                	jmp    519 <camlCas_test.entry+0x4a9>
+ 514:	f0 48 0f b1 33       	lock cmpxchg %rsi,(%rbx)
+ 519:	0f 94 c0             	sete   %al
+ 51c:	48 0f b6 c0          	movzbq %al,%rax
+ 520:	48 85 c0             	test   %rax,%rax
+ 523:	74 09                	je     52e <camlCas_test.entry+0x4be>
+ 525:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 52c <camlCas_test.entry+0x4bc>
+ 52c:	eb 07                	jmp    535 <camlCas_test.entry+0x4c5>
+ 52e:	48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # 535 <camlCas_test.entry+0x4c5>
  535:	48 8b 35 00 00 00 00 	mov    0x0(%rip),%rsi        # 53c <camlCas_test.entry+0x4cc>
- 53c:	ba 05 00 00 00       	mov    $0x5,%edx
- 541:	b8 05 00 00 00       	mov    $0x5,%eax
- 546:	48 8b 0c 24          	mov    (%rsp),%rcx
- 54a:	48 83 3e 01          	cmpq   $0x1,(%rsi)
- 54e:	75 06                	jne    556 <camlCas_test.entry+0x4e6>
- 550:	48 0f b1 11          	cmpxchg %rdx,(%rcx)
- 554:	eb 05                	jmp    55b <camlCas_test.entry+0x4eb>
- 556:	f0 48 0f b1 11       	lock cmpxchg %rdx,(%rcx)
- 55b:	0f 94 c0             	sete   %al
- 55e:	48 0f b6 c0          	movzbq %al,%rax
- 562:	48 85 c0             	test   %rax,%rax
- 565:	74 04                	je     56b <camlCas_test.entry+0x4fb>
- 567:	48 83 c3 02          	add    $0x2,%rbx
- 56b:	48 89 f8             	mov    %rdi,%rax
- 56e:	48 83 c7 02          	add    $0x2,%rdi
- 572:	48 3d d1 07 00 00    	cmp    $0x7d1,%rax
- 578:	74 07                	je     581 <camlCas_test.entry+0x511>
- 57a:	4d 3b 3e             	cmp    (%r14),%r15
- 57d:	77 b6                	ja     535 <camlCas_test.entry+0x4c5>
- 57f:	eb 36                	jmp    5b7 <camlCas_test.entry+0x547>
- 581:	48 81 fb d1 07 00 00 	cmp    $0x7d1,%rbx
- 588:	0f 94 c0             	sete   %al
- 58b:	48 0f b6 d8          	movzbq %al,%rbx
- 58f:	48 d1 e3             	shl    $1,%rbx
- 592:	48 ff c3             	inc    %rbx
- 595:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 59c <camlCas_test.entry+0x52c>
- 59c:	e8 00 00 00 00       	call   5a1 <camlCas_test.entry+0x531>
- 5a1:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 5a8 <camlCas_test.entry+0x538>
- 5a8:	e8 00 00 00 00       	call   5ad <camlCas_test.entry+0x53d>
- 5ad:	b8 01 00 00 00       	mov    $0x1,%eax
- 5b2:	48 83 c4 08          	add    $0x8,%rsp
- 5b6:	c3                   	ret
- 5b7:	e8 00 00 00 00       	call   5bc <camlCas_test.entry+0x54c>
- 5bc:	e9 74 ff ff ff       	jmp    535 <camlCas_test.entry+0x4c5>
- 5c1:	6a 22                	push   $0x22
- 5c3:	e8 00 00 00 00       	call   5c8 <camlCas_test.entry+0x558>
- 5c8:	41 5a                	pop    %r10
- 5ca:	e9 b3 fa ff ff       	jmp    82 <camlCas_test.entry+0x12>
+ 53c:	48 89 e3             	mov    %rsp,%rbx
+ 53f:	49 8b 66 40          	mov    0x40(%r14),%rsp
+ 543:	e8 00 00 00 00       	call   548 <camlCas_test.entry+0x4d8>
+ 548:	48 89 dc             	mov    %rbx,%rsp
+ 54b:	48 89 c3             	mov    %rax,%rbx
+ 54e:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 555 <camlCas_test.entry+0x4e5>
+ 555:	e8 00 00 00 00       	call   55a <camlCas_test.entry+0x4ea>
+ 55a:	bf 01 00 00 00       	mov    $0x1,%edi
+ 55f:	bb 03 00 00 00       	mov    $0x3,%ebx
+ 564:	48 81 fb d1 07 00 00 	cmp    $0x7d1,%rbx
+ 56b:	7f 53                	jg     5c0 <camlCas_test.entry+0x550>
+ 56d:	48 8b 35 00 00 00 00 	mov    0x0(%rip),%rsi        # 574 <camlCas_test.entry+0x504>
+ 574:	ba 05 00 00 00       	mov    $0x5,%edx
+ 579:	b8 05 00 00 00       	mov    $0x5,%eax
+ 57e:	4c 8b 04 24          	mov    (%rsp),%r8
+ 582:	48 83 3e 01          	cmpq   $0x1,(%rsi)
+ 586:	75 0d                	jne    595 <camlCas_test.entry+0x525>
+ 588:	49 8b 08             	mov    (%r8),%rcx
+ 58b:	48 39 c8             	cmp    %rcx,%rax
+ 58e:	75 0a                	jne    59a <camlCas_test.entry+0x52a>
+ 590:	49 89 10             	mov    %rdx,(%r8)
+ 593:	eb 05                	jmp    59a <camlCas_test.entry+0x52a>
+ 595:	f0 49 0f b1 10       	lock cmpxchg %rdx,(%r8)
+ 59a:	0f 94 c0             	sete   %al
+ 59d:	48 0f b6 c0          	movzbq %al,%rax
+ 5a1:	48 85 c0             	test   %rax,%rax
+ 5a4:	74 04                	je     5aa <camlCas_test.entry+0x53a>
+ 5a6:	48 83 c7 02          	add    $0x2,%rdi
+ 5aa:	48 89 d8             	mov    %rbx,%rax
+ 5ad:	48 83 c3 02          	add    $0x2,%rbx
+ 5b1:	48 3d d1 07 00 00    	cmp    $0x7d1,%rax
+ 5b7:	74 07                	je     5c0 <camlCas_test.entry+0x550>
+ 5b9:	4d 3b 3e             	cmp    (%r14),%r15
+ 5bc:	77 af                	ja     56d <camlCas_test.entry+0x4fd>
+ 5be:	eb 36                	jmp    5f6 <camlCas_test.entry+0x586>
+ 5c0:	48 81 ff d1 07 00 00 	cmp    $0x7d1,%rdi
+ 5c7:	0f 94 c0             	sete   %al
+ 5ca:	48 0f b6 d8          	movzbq %al,%rbx
+ 5ce:	48 d1 e3             	shl    $1,%rbx
+ 5d1:	48 ff c3             	inc    %rbx
+ 5d4:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 5db <camlCas_test.entry+0x56b>
+ 5db:	e8 00 00 00 00       	call   5e0 <camlCas_test.entry+0x570>
+ 5e0:	48 8b 05 00 00 00 00 	mov    0x0(%rip),%rax        # 5e7 <camlCas_test.entry+0x577>
+ 5e7:	e8 00 00 00 00       	call   5ec <camlCas_test.entry+0x57c>
+ 5ec:	b8 01 00 00 00       	mov    $0x1,%eax
+ 5f1:	48 83 c4 08          	add    $0x8,%rsp
+ 5f5:	c3                   	ret
+ 5f6:	e8 00 00 00 00       	call   5fb <camlCas_test.entry+0x58b>
+ 5fb:	e9 6d ff ff ff       	jmp    56d <camlCas_test.entry+0x4fd>
+ 600:	6a 22                	push   $0x22
+ 602:	e8 00 00 00 00       	call   607 <camlCas_test.entry+0x597>
+ 607:	41 5a                	pop    %r10
+ 609:	e9 74 fa ff ff       	jmp    82 <camlCas_test.entry+0x12>
