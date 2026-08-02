@@ -57,5 +57,5 @@ remember.
 
 ## Elsewhere
 
-Prompts and the how-this-actually-gets-made side of things live on my
-transparency page, which points back here.
+`general-llm-usage/` has my prompts and how I actually use models when I'm
+working. My transparency page covers the same ground and points back here.
