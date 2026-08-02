@@ -1,0 +1,72 @@
+From <commit> Mon Sep 17 00:00:00 2001
+From: <author>
+Date: 2026-08-02
+Subject: [PATCH 5/5] s390x: emit csg for atomic exchange and cas, drop the
+ arch gate
+
+---
+ asmcomp/cmmgen.ml      |  9 ++-------
+ asmcomp/s390x/emit.mlp | 27 ++++++++++++++++++++++++---
+ 2 files changed, 26 insertions(+), 10 deletions(-)
+
+diff --git a/asmcomp/cmmgen.ml b/asmcomp/cmmgen.ml
+index fcb1cb25d4..ff331d60b0 100644
+--- a/asmcomp/cmmgen.ml
++++ b/asmcomp/cmmgen.ml
+@@ -358,13 +358,8 @@ let machtype_of_value_kind (value_kind : Lambda.value_kind) =
+   | Pintval ->
+       Cmm.typ_int
+ 
+-(* s390x still keeps the C call, as does TSan, where the instrumentation lives
+-   in the runtime call. *)
+-let native_atomics =
+-  not Config.tsan
+-  && match Config.architecture with
+-     | "amd64" | "arm64" | "riscv" | "power" -> true
+-     | _ -> false
++(* TSan keeps the C call, where the instrumentation lives. *)
++let native_atomics = not Config.tsan
+ 
+ (* Translate an expression *)
+ 
+diff --git a/asmcomp/s390x/emit.mlp b/asmcomp/s390x/emit.mlp
+index c244192f8b..f03b9c369c 100644
+--- a/asmcomp/s390x/emit.mlp
++++ b/asmcomp/s390x/emit.mlp
+@@ -424,9 +424,30 @@ let emit_instr env i =
+           | Double -> "stdy" in
+         emit_load_store storeinstr addr i.arg 1 i.arg.(0)
+ 
+-    | Lop(Iatomic_exchange | Iatomic_cas) ->
+-        (* cmmgen keeps the C call on s390x, so selection never builds these. *)
+-        Misc.fatal_error "native atomic exchange/cas: s390x not implemented"
++    | Lop(Iatomic_exchange) ->
++        (* csg loads the current value into its first operand when it fails,
++           so the retry needs no reload. res.(0) ends up holding the old
++           value. csg serialises either side of the access (PoP 7-159), which
++           is why there is no fence here, same as laag below.
++           brc 4 is condition code 1, the unequal case. *)
++        let lbl = new_label() in
++        `	lg	{emit_reg i.res.(0)}, 0({emit_reg i.arg.(0)})\n`;
++        `{emit_label lbl}:\n`;
++        `	csg	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, 0({emit_reg i.arg.(0)})\n`;
++        `	brc	4, {emit_label lbl}\n`
++    | Lop(Iatomic_cas) ->
++        (* csg clobbers its first operand on failure, so the expected value is
++           copied into res.(0) first, which interference keeps clear of the
++           arguments. lghi leaves the condition code alone, so the result is
++           materialised the same way as an integer comparison.
++           brc 8 is condition code 0, equal and stored. *)
++        let lbl = new_label() in
++        `	lgr	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}\n`;
++        `	csg	{emit_reg i.res.(0)}, {emit_reg i.arg.(2)}, 0({emit_reg i.arg.(0)})\n`;
++        `	lghi	{emit_reg i.res.(0)}, 1\n`;
++        `	brc	8, {emit_label lbl}\n`;
++        `	lghi	{emit_reg i.res.(0)}, 0\n`;
++        `{emit_label lbl}:\n`
+     | Lop(Iatomic_fetch_add) ->
+         `	laag	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, 0({emit_reg i.arg.(0)})\n`
+ 
+-- 
+2.51.0.windows.2
+

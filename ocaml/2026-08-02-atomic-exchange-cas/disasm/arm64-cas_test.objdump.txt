@@ -1,0 +1,404 @@
+
+cas_test.o:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+0000000000000000 <camlCas_test.code_begin>:
+   0:	d2800450 	mov	x16, #0x22                  	// #34
+   4:	a9bf7bf0 	stp	x16, x30, [sp, #-16]!
+   8:	94000000 	bl	0 <caml_call_realloc_stack>
+   c:	a8c17bf0 	ldp	x16, x30, [sp], #16
+
+0000000000000010 <camlCas_test.check_279>:
+  10:	f9401790 	ldr	x16, [x28, #40]
+  14:	91052210 	add	x16, x16, #0x148
+  18:	eb3063ff 	cmp	sp, x16
+  1c:	54ffff23 	b.cc	0 <camlCas_test.code_begin>  // b.lo, b.ul, b.last
+  20:	f81f83fe 	stur	x30, [sp, #-8]
+  24:	d10043ff 	sub	sp, sp, #0x10
+  28:	f100043f 	cmp	x1, #0x1
+  2c:	540000a0 	b.eq	40 <camlCas_test.check_279+0x30>  // b.none
+  30:	b24003e0 	orr	x0, xzr, #0x1
+  34:	910043ff 	add	sp, sp, #0x10
+  38:	f85f83fe 	ldur	x30, [sp, #-8]
+  3c:	d65f03c0 	ret
+  40:	f90003e0 	str	x0, [sp]
+  44:	90000001 	adrp	x1, 90 <camlCas_test.entry>
+  48:	f9400021 	ldr	x1, [x1]
+  4c:	90000004 	adrp	x4, 0 <camlStdlib>
+  50:	f9400084 	ldr	x4, [x4]
+  54:	f9409880 	ldr	x0, [x4, #304]
+  58:	94000000 	bl	0 <camlStdlib__Printf.fprintf_433>
+  5c:	aa0003e1 	mov	x1, x0
+  60:	f9400027 	ldr	x7, [x1]
+  64:	f94003e0 	ldr	x0, [sp]
+  68:	d63f00e0 	blr	x7
+  6c:	b24007e0 	orr	x0, xzr, #0x3
+  70:	910043ff 	add	sp, sp, #0x10
+  74:	f85f83fe 	ldur	x30, [sp, #-8]
+  78:	14000000 	b	0 <camlStdlib.exit_480>
+  7c:	d503201f 	nop
+  80:	d2800450 	mov	x16, #0x22                  	// #34
+  84:	a9bf7bf0 	stp	x16, x30, [sp, #-16]!
+  88:	94000000 	bl	0 <caml_call_realloc_stack>
+  8c:	a8c17bf0 	ldp	x16, x30, [sp], #16
+
+0000000000000090 <camlCas_test.entry>:
+  90:	f9401790 	ldr	x16, [x28, #40]
+  94:	91052210 	add	x16, x16, #0x148
+  98:	eb3063ff 	cmp	sp, x16
+  9c:	54ffff23 	b.cc	80 <camlCas_test.check_279+0x70>  // b.lo, b.ul, b.last
+  a0:	f81f83fe 	stur	x30, [sp, #-8]
+  a4:	d10043ff 	sub	sp, sp, #0x10
+  a8:	90000001 	adrp	x1, 8 <camlCas_test.code_begin+0x8>
+  ac:	f9400021 	ldr	x1, [x1]
+  b0:	90000000 	adrp	x0, 28 <camlCas_test.check_279+0x18>
+  b4:	f9400000 	ldr	x0, [x0]
+  b8:	910003f3 	mov	x19, sp
+  bc:	f9402390 	ldr	x16, [x28, #64]
+  c0:	9100021f 	mov	sp, x16
+  c4:	94000000 	bl	0 <caml_initialize>
+  c8:	9100027f 	mov	sp, x19
+  cc:	94000000 	bl	0 <caml_alloc1>
+  d0:	91002362 	add	x2, x27, #0x8
+  d4:	f90003e2 	str	x2, [sp]
+  d8:	b27603e3 	orr	x3, xzr, #0x400
+  dc:	f81f8043 	stur	x3, [x2, #-8]
+  e0:	d28002a4 	mov	x4, #0x15                  	// #21
+  e4:	f9000044 	str	x4, [x2]
+  e8:	d2800aa5 	mov	x5, #0x55                  	// #85
+  ec:	d28018e6 	mov	x6, #0xc7                  	// #199
+  f0:	c85ffc47 	ldaxr	x7, [x2]
+  f4:	eb0600ff 	cmp	x7, x6
+  f8:	54000081 	b.ne	108 <camlCas_test.entry+0x78>  // b.any
+  fc:	c811fc45 	stlxr	w17, x5, [x2]
+ 100:	35ffff91 	cbnz	w17, f0 <camlCas_test.entry+0x60>
+ 104:	14000002 	b	10c <camlCas_test.entry+0x7c>
+ 108:	d5033f5f 	clrex
+ 10c:	9a9f17e7 	cset	x7, eq	// eq = none
+ 110:	d5033abf 	dmb	ishst
+ 114:	d37ff8e8 	lsl	x8, x7, #1
+ 118:	91000509 	add	x9, x8, #0x1
+ 11c:	f100053f 	cmp	x9, #0x1
+ 120:	9a9f17ea 	cset	x10, eq	// eq = none
+ 124:	d37ff94b 	lsl	x11, x10, #1
+ 128:	91000561 	add	x1, x11, #0x1
+ 12c:	90000000 	adrp	x0, 78 <camlCas_test.check_279+0x68>
+ 130:	f9400000 	ldr	x0, [x0]
+ 134:	94000000 	bl	10 <camlCas_test.check_279>
+ 138:	f94003f3 	ldr	x19, [sp]
+ 13c:	d50339bf 	dmb	ishld
+ 140:	c8dffe6e 	ldar	x14, [x19]
+ 144:	f10055df 	cmp	x14, #0x15
+ 148:	9a9f17ef 	cset	x15, eq	// eq = none
+ 14c:	b24003f3 	orr	x19, xzr, #0x1
+ 150:	8b0f0661 	add	x1, x19, x15, lsl #1
+ 154:	90000000 	adrp	x0, 60 <camlCas_test.check_279+0x50>
+ 158:	f9400000 	ldr	x0, [x0]
+ 15c:	94000000 	bl	10 <camlCas_test.check_279>
+ 160:	d2800ab6 	mov	x22, #0x55                  	// #85
+ 164:	d28002b7 	mov	x23, #0x15                  	// #21
+ 168:	f94003f4 	ldr	x20, [sp]
+ 16c:	c85ffe98 	ldaxr	x24, [x20]
+ 170:	eb17031f 	cmp	x24, x23
+ 174:	54000081 	b.ne	184 <camlCas_test.entry+0xf4>  // b.any
+ 178:	c811fe96 	stlxr	w17, x22, [x20]
+ 17c:	35ffff91 	cbnz	w17, 16c <camlCas_test.entry+0xdc>
+ 180:	14000002 	b	188 <camlCas_test.entry+0xf8>
+ 184:	d5033f5f 	clrex
+ 188:	9a9f17f8 	cset	x24, eq	// eq = none
+ 18c:	d5033abf 	dmb	ishst
+ 190:	d37ffb19 	lsl	x25, x24, #1
+ 194:	91000720 	add	x0, x25, #0x1
+ 198:	f1000c1f 	cmp	x0, #0x3
+ 19c:	9a9f17e1 	cset	x1, eq	// eq = none
+ 1a0:	d37ff822 	lsl	x2, x1, #1
+ 1a4:	91000441 	add	x1, x2, #0x1
+ 1a8:	90000000 	adrp	x0, 48 <camlCas_test.check_279+0x38>
+ 1ac:	f9400000 	ldr	x0, [x0]
+ 1b0:	94000000 	bl	10 <camlCas_test.check_279>
+ 1b4:	f94003f5 	ldr	x21, [sp]
+ 1b8:	d50339bf 	dmb	ishld
+ 1bc:	c8dffea5 	ldar	x5, [x21]
+ 1c0:	f10154bf 	cmp	x5, #0x55
+ 1c4:	9a9f17e6 	cset	x6, eq	// eq = none
+ 1c8:	b24003e7 	orr	x7, xzr, #0x1
+ 1cc:	8b0604e1 	add	x1, x7, x6, lsl #1
+ 1d0:	90000000 	adrp	x0, 298 <camlCas_test.entry+0x208>
+ 1d4:	f9400000 	ldr	x0, [x0]
+ 1d8:	94000000 	bl	10 <camlCas_test.check_279>
+ 1dc:	b27cf7ea 	orr	x10, xzr, #0xfffffffffffffff3
+ 1e0:	d2800aab 	mov	x11, #0x55                  	// #85
+ 1e4:	f94003f6 	ldr	x22, [sp]
+ 1e8:	c85ffecc 	ldaxr	x12, [x22]
+ 1ec:	eb0b019f 	cmp	x12, x11
+ 1f0:	54000081 	b.ne	200 <camlCas_test.entry+0x170>  // b.any
+ 1f4:	c811feca 	stlxr	w17, x10, [x22]
+ 1f8:	35ffff91 	cbnz	w17, 1e8 <camlCas_test.entry+0x158>
+ 1fc:	14000002 	b	204 <camlCas_test.entry+0x174>
+ 200:	d5033f5f 	clrex
+ 204:	9a9f17ec 	cset	x12, eq	// eq = none
+ 208:	d5033abf 	dmb	ishst
+ 20c:	d37ff98d 	lsl	x13, x12, #1
+ 210:	910005ae 	add	x14, x13, #0x1
+ 214:	f1000ddf 	cmp	x14, #0x3
+ 218:	9a9f17ef 	cset	x15, eq	// eq = none
+ 21c:	d37ff9f3 	lsl	x19, x15, #1
+ 220:	91000661 	add	x1, x19, #0x1
+ 224:	90000000 	adrp	x0, 288 <camlCas_test.entry+0x1f8>
+ 228:	f9400000 	ldr	x0, [x0]
+ 22c:	94000000 	bl	10 <camlCas_test.check_279>
+ 230:	f94003f7 	ldr	x23, [sp]
+ 234:	d50339bf 	dmb	ishld
+ 238:	c8dffef6 	ldar	x22, [x23]
+ 23c:	b10036df 	cmn	x22, #0xd
+ 240:	9a9f17f7 	cset	x23, eq	// eq = none
+ 244:	b24003f8 	orr	x24, xzr, #0x1
+ 248:	8b170701 	add	x1, x24, x23, lsl #1
+ 24c:	90000000 	adrp	x0, 270 <camlCas_test.entry+0x1e0>
+ 250:	f9400000 	ldr	x0, [x0]
+ 254:	94000000 	bl	10 <camlCas_test.check_279>
+ 258:	b24003e1 	orr	x1, xzr, #0x1
+ 25c:	b27cf7e2 	orr	x2, xzr, #0xfffffffffffffff3
+ 260:	f94003f8 	ldr	x24, [sp]
+ 264:	c85fff03 	ldaxr	x3, [x24]
+ 268:	eb02007f 	cmp	x3, x2
+ 26c:	54000081 	b.ne	27c <camlCas_test.entry+0x1ec>  // b.any
+ 270:	c811ff01 	stlxr	w17, x1, [x24]
+ 274:	35ffff91 	cbnz	w17, 264 <camlCas_test.entry+0x1d4>
+ 278:	14000002 	b	280 <camlCas_test.entry+0x1f0>
+ 27c:	d5033f5f 	clrex
+ 280:	9a9f17e3 	cset	x3, eq	// eq = none
+ 284:	d5033abf 	dmb	ishst
+ 288:	d37ff864 	lsl	x4, x3, #1
+ 28c:	91000485 	add	x5, x4, #0x1
+ 290:	f1000cbf 	cmp	x5, #0x3
+ 294:	9a9f17e6 	cset	x6, eq	// eq = none
+ 298:	d37ff8c7 	lsl	x7, x6, #1
+ 29c:	910004e1 	add	x1, x7, #0x1
+ 2a0:	90000000 	adrp	x0, 258 <camlCas_test.entry+0x1c8>
+ 2a4:	f9400000 	ldr	x0, [x0]
+ 2a8:	94000000 	bl	10 <camlCas_test.check_279>
+ 2ac:	f94003f9 	ldr	x25, [sp]
+ 2b0:	d50339bf 	dmb	ishld
+ 2b4:	c8dfff2a 	ldar	x10, [x25]
+ 2b8:	f100055f 	cmp	x10, #0x1
+ 2bc:	9a9f17eb 	cset	x11, eq	// eq = none
+ 2c0:	b24003ec 	orr	x12, xzr, #0x1
+ 2c4:	8b0b0581 	add	x1, x12, x11, lsl #1
+ 2c8:	90000000 	adrp	x0, 240 <camlCas_test.entry+0x1b0>
+ 2cc:	f9400000 	ldr	x0, [x0]
+ 2d0:	94000000 	bl	10 <camlCas_test.check_279>
+ 2d4:	b24003ef 	orr	x15, xzr, #0x1
+ 2d8:	b24003f3 	orr	x19, xzr, #0x1
+ 2dc:	f94003e0 	ldr	x0, [sp]
+ 2e0:	c85ffc14 	ldaxr	x20, [x0]
+ 2e4:	eb13029f 	cmp	x20, x19
+ 2e8:	54000081 	b.ne	2f8 <camlCas_test.entry+0x268>  // b.any
+ 2ec:	c811fc0f 	stlxr	w17, x15, [x0]
+ 2f0:	35ffff91 	cbnz	w17, 2e0 <camlCas_test.entry+0x250>
+ 2f4:	14000002 	b	2fc <camlCas_test.entry+0x26c>
+ 2f8:	d5033f5f 	clrex
+ 2fc:	9a9f17f4 	cset	x20, eq	// eq = none
+ 300:	d5033abf 	dmb	ishst
+ 304:	d37ffa95 	lsl	x21, x20, #1
+ 308:	910006b6 	add	x22, x21, #0x1
+ 30c:	f1000edf 	cmp	x22, #0x3
+ 310:	9a9f17f7 	cset	x23, eq	// eq = none
+ 314:	d37ffaf8 	lsl	x24, x23, #1
+ 318:	91000701 	add	x1, x24, #0x1
+ 31c:	90000000 	adrp	x0, 228 <camlCas_test.entry+0x198>
+ 320:	f9400000 	ldr	x0, [x0]
+ 324:	94000000 	bl	10 <camlCas_test.check_279>
+ 328:	f94003e1 	ldr	x1, [sp]
+ 32c:	d50339bf 	dmb	ishld
+ 330:	c8dffc21 	ldar	x1, [x1]
+ 334:	f100043f 	cmp	x1, #0x1
+ 338:	9a9f17e2 	cset	x2, eq	// eq = none
+ 33c:	b24003e3 	orr	x3, xzr, #0x1
+ 340:	8b020461 	add	x1, x3, x2, lsl #1
+ 344:	90000000 	adrp	x0, 210 <camlCas_test.entry+0x180>
+ 348:	f9400000 	ldr	x0, [x0]
+ 34c:	94000000 	bl	10 <camlCas_test.check_279>
+ 350:	d2800166 	mov	x6, #0xb                   	// #11
+ 354:	f94003e2 	ldr	x2, [sp]
+ 358:	c85ffc47 	ldaxr	x7, [x2]
+ 35c:	c811fc46 	stlxr	w17, x6, [x2]
+ 360:	35ffffd1 	cbnz	w17, 358 <camlCas_test.entry+0x2c8>
+ 364:	d5033abf 	dmb	ishst
+ 368:	f10004ff 	cmp	x7, #0x1
+ 36c:	9a9f17e8 	cset	x8, eq	// eq = none
+ 370:	d37ff909 	lsl	x9, x8, #1
+ 374:	91000521 	add	x1, x9, #0x1
+ 378:	90000000 	adrp	x0, 1f8 <camlCas_test.entry+0x168>
+ 37c:	f9400000 	ldr	x0, [x0]
+ 380:	94000000 	bl	10 <camlCas_test.check_279>
+ 384:	f94003e3 	ldr	x3, [sp]
+ 388:	d50339bf 	dmb	ishld
+ 38c:	c8dffc6c 	ldar	x12, [x3]
+ 390:	f1002d9f 	cmp	x12, #0xb
+ 394:	9a9f17ed 	cset	x13, eq	// eq = none
+ 398:	b24003ee 	orr	x14, xzr, #0x1
+ 39c:	8b0d05c1 	add	x1, x14, x13, lsl #1
+ 3a0:	90000000 	adrp	x0, 1e0 <camlCas_test.entry+0x150>
+ 3a4:	f9400000 	ldr	x0, [x0]
+ 3a8:	94000000 	bl	10 <camlCas_test.check_279>
+ 3ac:	92800014 	mov	x20, #0xffffffffffffffff    	// #-1
+ 3b0:	f94003e4 	ldr	x4, [sp]
+ 3b4:	c85ffc95 	ldaxr	x21, [x4]
+ 3b8:	c811fc94 	stlxr	w17, x20, [x4]
+ 3bc:	35ffffd1 	cbnz	w17, 3b4 <camlCas_test.entry+0x324>
+ 3c0:	d5033abf 	dmb	ishst
+ 3c4:	f1002ebf 	cmp	x21, #0xb
+ 3c8:	9a9f17f6 	cset	x22, eq	// eq = none
+ 3cc:	d37ffad7 	lsl	x23, x22, #1
+ 3d0:	910006e1 	add	x1, x23, #0x1
+ 3d4:	90000000 	adrp	x0, 1c8 <camlCas_test.entry+0x138>
+ 3d8:	f9400000 	ldr	x0, [x0]
+ 3dc:	94000000 	bl	10 <camlCas_test.check_279>
+ 3e0:	f94003e5 	ldr	x5, [sp]
+ 3e4:	d50339bf 	dmb	ishld
+ 3e8:	c8dffca0 	ldar	x0, [x5]
+ 3ec:	b100041f 	cmn	x0, #0x1
+ 3f0:	9a9f17e1 	cset	x1, eq	// eq = none
+ 3f4:	b24003e2 	orr	x2, xzr, #0x1
+ 3f8:	8b010441 	add	x1, x2, x1, lsl #1
+ 3fc:	90000000 	adrp	x0, 198 <camlCas_test.entry+0x108>
+ 400:	f9400000 	ldr	x0, [x0]
+ 404:	94000000 	bl	10 <camlCas_test.check_279>
+ 408:	94000000 	bl	0 <caml_alloc1>
+ 40c:	91002365 	add	x5, x27, #0x8
+ 410:	f90003e5 	str	x5, [sp]
+ 414:	b27603e6 	orr	x6, xzr, #0x400
+ 418:	f81f80a6 	stur	x6, [x5, #-8]
+ 41c:	b24007e7 	orr	x7, xzr, #0x3
+ 420:	f90000a7 	str	x7, [x5]
+ 424:	b24003e8 	orr	x8, xzr, #0x1
+ 428:	b24007e9 	orr	x9, xzr, #0x3
+ 42c:	c85ffcaa 	ldaxr	x10, [x5]
+ 430:	eb09015f 	cmp	x10, x9
+ 434:	54000081 	b.ne	444 <camlCas_test.entry+0x3b4>  // b.any
+ 438:	c811fca8 	stlxr	w17, x8, [x5]
+ 43c:	35ffff91 	cbnz	w17, 42c <camlCas_test.entry+0x39c>
+ 440:	14000002 	b	448 <camlCas_test.entry+0x3b8>
+ 444:	d5033f5f 	clrex
+ 448:	9a9f17ea 	cset	x10, eq	// eq = none
+ 44c:	d5033abf 	dmb	ishst
+ 450:	d37ff94b 	lsl	x11, x10, #1
+ 454:	9100056c 	add	x12, x11, #0x1
+ 458:	f1000d9f 	cmp	x12, #0x3
+ 45c:	9a9f17ed 	cset	x13, eq	// eq = none
+ 460:	d37ff9ae 	lsl	x14, x13, #1
+ 464:	910005c1 	add	x1, x14, #0x1
+ 468:	90000000 	adrp	x0, 180 <camlCas_test.entry+0xf0>
+ 46c:	f9400000 	ldr	x0, [x0]
+ 470:	94000000 	bl	10 <camlCas_test.check_279>
+ 474:	f94003e6 	ldr	x6, [sp]
+ 478:	d50339bf 	dmb	ishld
+ 47c:	c8dffcd4 	ldar	x20, [x6]
+ 480:	f100069f 	cmp	x20, #0x1
+ 484:	9a9f17f5 	cset	x21, eq	// eq = none
+ 488:	b24003f6 	orr	x22, xzr, #0x1
+ 48c:	8b1506c1 	add	x1, x22, x21, lsl #1
+ 490:	90000000 	adrp	x0, 168 <camlCas_test.entry+0xd8>
+ 494:	f9400000 	ldr	x0, [x0]
+ 498:	94000000 	bl	10 <camlCas_test.check_279>
+ 49c:	b24003f9 	orr	x25, xzr, #0x1
+ 4a0:	b24007e0 	orr	x0, xzr, #0x3
+ 4a4:	f94003e7 	ldr	x7, [sp]
+ 4a8:	c85ffce1 	ldaxr	x1, [x7]
+ 4ac:	eb00003f 	cmp	x1, x0
+ 4b0:	54000081 	b.ne	4c0 <camlCas_test.entry+0x430>  // b.any
+ 4b4:	c811fcf9 	stlxr	w17, x25, [x7]
+ 4b8:	35ffff91 	cbnz	w17, 4a8 <camlCas_test.entry+0x418>
+ 4bc:	14000002 	b	4c4 <camlCas_test.entry+0x434>
+ 4c0:	d5033f5f 	clrex
+ 4c4:	9a9f17e1 	cset	x1, eq	// eq = none
+ 4c8:	d5033abf 	dmb	ishst
+ 4cc:	d37ff822 	lsl	x2, x1, #1
+ 4d0:	91000443 	add	x3, x2, #0x1
+ 4d4:	f100047f 	cmp	x3, #0x1
+ 4d8:	9a9f17e4 	cset	x4, eq	// eq = none
+ 4dc:	d37ff885 	lsl	x5, x4, #1
+ 4e0:	910004a1 	add	x1, x5, #0x1
+ 4e4:	90000000 	adrp	x0, 150 <camlCas_test.entry+0xc0>
+ 4e8:	f9400000 	ldr	x0, [x0]
+ 4ec:	94000000 	bl	10 <camlCas_test.check_279>
+ 4f0:	94000000 	bl	0 <caml_alloc1>
+ 4f4:	91002368 	add	x8, x27, #0x8
+ 4f8:	f90003e8 	str	x8, [sp]
+ 4fc:	b27603e9 	orr	x9, xzr, #0x400
+ 500:	f81f8109 	stur	x9, [x8, #-8]
+ 504:	b24007ea 	orr	x10, xzr, #0x3
+ 508:	f900010a 	str	x10, [x8]
+ 50c:	d28000ab 	mov	x11, #0x5                   	// #5
+ 510:	b24007ec 	orr	x12, xzr, #0x3
+ 514:	c85ffd0d 	ldaxr	x13, [x8]
+ 518:	eb0c01bf 	cmp	x13, x12
+ 51c:	54000081 	b.ne	52c <camlCas_test.entry+0x49c>  // b.any
+ 520:	c811fd0b 	stlxr	w17, x11, [x8]
+ 524:	35ffff91 	cbnz	w17, 514 <camlCas_test.entry+0x484>
+ 528:	14000002 	b	530 <camlCas_test.entry+0x4a0>
+ 52c:	d5033f5f 	clrex
+ 530:	9a9f17ed 	cset	x13, eq	// eq = none
+ 534:	d5033abf 	dmb	ishst
+ 538:	b400008d 	cbz	x13, 548 <camlCas_test.entry+0x4b8>
+ 53c:	90000000 	adrp	x0, 140 <camlCas_test.entry+0xb0>
+ 540:	f9400000 	ldr	x0, [x0]
+ 544:	14000003 	b	550 <camlCas_test.entry+0x4c0>
+ 548:	90000000 	adrp	x0, 130 <camlCas_test.entry+0xa0>
+ 54c:	f9400000 	ldr	x0, [x0]
+ 550:	90000001 	adrp	x1, 140 <camlCas_test.entry+0xb0>
+ 554:	f9400021 	ldr	x1, [x1]
+ 558:	910003f3 	mov	x19, sp
+ 55c:	f9402390 	ldr	x16, [x28, #64]
+ 560:	9100021f 	mov	sp, x16
+ 564:	94000000 	bl	0 <caml_string_equal>
+ 568:	9100027f 	mov	sp, x19
+ 56c:	aa0003e1 	mov	x1, x0
+ 570:	90000000 	adrp	x0, 118 <camlCas_test.entry+0x88>
+ 574:	f9400000 	ldr	x0, [x0]
+ 578:	94000000 	bl	10 <camlCas_test.check_279>
+ 57c:	b24003f6 	orr	x22, xzr, #0x1
+ 580:	b24007f8 	orr	x24, xzr, #0x3
+ 584:	f11f471f 	cmp	x24, #0x7d1
+ 588:	540002ec 	b.gt	5e4 <camlCas_test.entry+0x554>
+ 58c:	d28000a0 	mov	x0, #0x5                   	// #5
+ 590:	d28000a1 	mov	x1, #0x5                   	// #5
+ 594:	f94003e8 	ldr	x8, [sp]
+ 598:	c85ffd02 	ldaxr	x2, [x8]
+ 59c:	eb01005f 	cmp	x2, x1
+ 5a0:	54000081 	b.ne	5b0 <camlCas_test.entry+0x520>  // b.any
+ 5a4:	c811fd00 	stlxr	w17, x0, [x8]
+ 5a8:	35ffff91 	cbnz	w17, 598 <camlCas_test.entry+0x508>
+ 5ac:	14000002 	b	5b4 <camlCas_test.entry+0x524>
+ 5b0:	d5033f5f 	clrex
+ 5b4:	9a9f17e2 	cset	x2, eq	// eq = none
+ 5b8:	d5033abf 	dmb	ishst
+ 5bc:	b4000042 	cbz	x2, 5c4 <camlCas_test.entry+0x534>
+ 5c0:	91000ad6 	add	x22, x22, #0x2
+ 5c4:	aa1803e5 	mov	x5, x24
+ 5c8:	91000b18 	add	x24, x24, #0x2
+ 5cc:	f11f44bf 	cmp	x5, #0x7d1
+ 5d0:	540000a0 	b.eq	5e4 <camlCas_test.entry+0x554>  // b.none
+ 5d4:	f9400390 	ldr	x16, [x28]
+ 5d8:	eb10037f 	cmp	x27, x16
+ 5dc:	54fffd88 	b.hi	58c <camlCas_test.entry+0x4fc>  // b.pmore
+ 5e0:	1400000f 	b	61c <camlCas_test.entry+0x58c>
+ 5e4:	f11f46df 	cmp	x22, #0x7d1
+ 5e8:	9a9f17e9 	cset	x9, eq	// eq = none
+ 5ec:	d37ff92a 	lsl	x10, x9, #1
+ 5f0:	91000541 	add	x1, x10, #0x1
+ 5f4:	90000000 	adrp	x0, 100 <camlCas_test.entry+0x70>
+ 5f8:	f9400000 	ldr	x0, [x0]
+ 5fc:	94000000 	bl	10 <camlCas_test.check_279>
+ 600:	90000000 	adrp	x0, f0 <camlCas_test.entry+0x60>
+ 604:	f9400000 	ldr	x0, [x0]
+ 608:	94000000 	bl	0 <camlStdlib.print_endline_369>
+ 60c:	b24003e0 	orr	x0, xzr, #0x1
+ 610:	910043ff 	add	sp, sp, #0x10
+ 614:	f85f83fe 	ldur	x30, [sp, #-8]
+ 618:	d65f03c0 	ret
+ 61c:	94000000 	bl	0 <caml_call_gc>
+ 620:	17ffffdb 	b	58c <camlCas_test.entry+0x4fc>

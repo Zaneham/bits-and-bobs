@@ -1,0 +1,79 @@
+From <commit> Mon Sep 17 00:00:00 2001
+From: <author>
+Date: 2026-08-02
+Subject: [PATCH 4/5] stdlib: expose Atomic.exchange and compare_and_set as
+ externals
+
+---
+ Changes           | 8 ++++++++
+ stdlib/atomic.ml  | 8 ++++----
+ stdlib/atomic.mli | 8 ++++++--
+ 3 files changed, 18 insertions(+), 6 deletions(-)
+
+diff --git a/Changes b/Changes
+index 218cd84447..c14ddbe3e0 100644
+--- a/Changes
++++ b/Changes
+@@ -119,6 +119,14 @@ Working version
+ - #14575: Emit direct assembly for `Atomic.fetch_and_add`
+   rather than going through C
+   (Zane Hambly, review by Olivier Nicole and KC Sivaramakrishnan)
++
++- Emit direct assembly for `Atomic.exchange` and `Atomic.compare_and_set`
++  when the stored value is statically known to be immediate, in which case
++  no write barrier is needed. `Atomic.exchange` and `Atomic.compare_and_set`
++  become externals so the primitive reaches the call site, where the type is
++  usually concrete.
++  (Zane Hambly, review by ????)
++
+ * #13919: optimize `lazy v` when `v` is a structured constant
+   (below a size threshold), so that `Lazy.from_val v` should not be
+   necessary anymore in most cases.
+diff --git a/stdlib/atomic.ml b/stdlib/atomic.ml
+index 2173df1247..6e5e584811 100644
+--- a/stdlib/atomic.ml
++++ b/stdlib/atomic.ml
+@@ -149,10 +149,10 @@ let get t =
+ let set t v =
+   t.contents <- v
+ 
+-let exchange t v =
+-  Loc.exchange [%atomic.loc t.contents] v
+-let compare_and_set t old new_ =
+-  Loc.compare_and_set [%atomic.loc t.contents] old new_
++(* see the note in atomic.mli: these stay externals so the primitive lands at
++   the call site, where the value type is usually concrete *)
++external exchange : 'a t -> 'a -> 'a = "%atomic_exchange"
++external compare_and_set : 'a t -> 'a -> 'a -> bool = "%atomic_cas"
+ let fetch_and_add t incr =
+   Loc.fetch_and_add [%atomic.loc t.contents] incr
+ let incr t =
+diff --git a/stdlib/atomic.mli b/stdlib/atomic.mli
+index 61f1e6ee2c..4d71c5389e 100644
+--- a/stdlib/atomic.mli
++++ b/stdlib/atomic.mli
+@@ -50,15 +50,19 @@ val get : 'a t -> 'a
+ (** Set a new value for the atomic reference. *)
+ val set : 'a t -> 'a -> unit
+ 
++(* exposed as 'external' so the primitive reaches the call site, where the
++   type is usually known. On an immediate the compiler can then skip the
++   write barrier and emit the bare instruction. *)
++
+ (** Set a new value for the atomic reference, and return the current value. *)
+-val exchange : 'a t -> 'a -> 'a
++external exchange : 'a t -> 'a -> 'a = "%atomic_exchange"
+ 
+ (** [compare_and_set r seen v] sets the new value of [r] to [v] only
+     if its current value is physically equal to [seen] -- the
+     comparison and the set occur atomically. Returns [true] if the
+     comparison succeeded (so the set happened) and [false]
+     otherwise. *)
+-val compare_and_set : 'a t -> 'a -> 'a -> bool
++external compare_and_set : 'a t -> 'a -> 'a -> bool = "%atomic_cas"
+ 
+ (** [fetch_and_add r n] atomically increments the value of [r] by [n],
+     and returns the current value (before the increment). *)
+-- 
+2.51.0.windows.2
+

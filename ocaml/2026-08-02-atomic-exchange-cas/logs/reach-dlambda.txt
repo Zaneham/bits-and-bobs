@@ -1,0 +1,38 @@
+# Which call sites actually reach the native instruction, -dlambda.
+# Immediate value  -> native atomic_cas / atomic_exchange (no write barrier)
+# Maybe-pointer    -> caml_atomic_*_field (barrier preserved)
+
+## flagship.ml : the public Atomic.t API, after making exchange/compare_and_set externals
+      (let (r = (apply (field_imm 0 (global Stdlib__Atomic!)) 0))
+      (let
+        (f =
+             (atomic_cas (field_imm 0 (global F!)) 0 1 2)))
+      (let
+        (g =
+             (atomic_exchange (field_imm 0 (global F!)) 0 5)))
+      (let (p = (apply (field_imm 0 (global Stdlib__Atomic!)) "a"))
+      (let
+        (h =
+             (caml_atomic_cas_field (field_imm 3 (global F!)) 0 "a" "b")))
+      (let
+        (k =
+             (caml_atomic_exchange_field (field_imm 3 (global F!)) 0 "c")))
+      (let (b = (apply (field_imm 0 (global Stdlib__Atomic!)) 1))
+      (let
+        (m =
+             (atomic_cas (field_imm 6 (global F!)) 0 1 0)))
+      (let (poly = (function t o n : int (caml_atomic_cas_field t 0 o n)))
+
+## abs.ml : abstract and polymorphic types must NOT specialise
+        (cas_la =
+           (function r oldv newv : int (caml_atomic_cas_field r 1 oldv newv)))
+        (setfield_ptr(root-init) 0 (global A!) cas_la))
+        (cas_poly =
+           (function r oldv newv : int (caml_atomic_cas_field r 1 oldv newv)))
+        (setfield_ptr(root-init) 1 (global A!) cas_poly))
+        (cas_str =
+           (function r oldv newv : int (caml_atomic_cas_field r 1 oldv newv)))
+        (setfield_ptr(root-init) 2 (global A!) cas_str))
+        (cas_int =
+           (function r oldv[int] newv[int] : int (atomic_cas r 1 oldv newv)))
+        (setfield_ptr(root-init) 3 (global A!) cas_int))

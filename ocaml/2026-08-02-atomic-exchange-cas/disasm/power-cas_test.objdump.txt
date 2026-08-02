@@ -1,0 +1,543 @@
+
+cas_test.o:     file format elf64-powerpcle
+
+
+Disassembly of section .text:
+
+0000000000000000 <camlCas_test.code_begin>:
+   0:	a6 02 88 7f 26 00 60 3b 01 00 00 48 00 00 00 60     ....&.`;...H...`
+  10:	a6 03 88 7f 1c 00 00 48                             .......H
+
+0000000000000018 <camlCas_test.check_279>:
+  18:	00 00 4c 3c 	addis   r2,r12,0
+  1c:	00 00 42 38 	addi    r2,r2,0
+  20:	28 00 7e e9 	ld      r11,40(r30)
+  24:	68 01 6b 39 	addi    r11,r11,360
+  28:	40 58 21 7c 	cmpld   r1,r11
+  2c:	d4 ff c1 40 	ble-    0 <camlCas_test.code_begin>
+  30:	a6 02 08 7c 	mflr    r0
+  34:	10 00 01 f8 	std     r0,16(r1)
+  38:	08 00 41 f8 	std     r2,8(r1)
+  3c:	d0 ff 21 38 	addi    r1,r1,-48
+  40:	01 00 24 2c 	cmpdi   r4,1
+  44:	18 00 82 41 	beq     5c <camlCas_test.check_279+0x44>
+  48:	40 00 61 e9 	ld      r11,64(r1)
+  4c:	a6 03 68 7d 	mtlr    r11
+  50:	01 00 60 38 	li      r3,1
+  54:	30 00 21 38 	addi    r1,r1,48
+  58:	20 00 80 4e 	blr
+  5c:	00 00 82 3c 	addis   r4,r2,0
+  60:	00 00 84 e8 	ld      r4,0(r4)
+  64:	20 00 61 f8 	std     r3,32(r1)
+  68:	00 00 62 3d 	addis   r11,r2,0
+  6c:	00 00 6b e9 	ld      r11,0(r11)
+  70:	30 01 6b e8 	ld      r3,304(r11)
+  74:	01 00 00 48 	bl      74 <camlCas_test.check_279+0x5c>
+  78:	00 00 00 60 	nop
+  7c:	38 00 41 e8 	ld      r2,56(r1)
+  80:	78 1b 64 7c 	mr      r4,r3
+  84:	00 00 24 e9 	ld      r9,0(r4)
+  88:	20 00 61 e8 	ld      r3,32(r1)
+  8c:	a6 03 29 7d 	mtctr   r9
+  90:	78 4b 2c 7d 	mr      r12,r9
+  94:	21 04 80 4e 	bctrl
+  98:	38 00 41 e8 	ld      r2,56(r1)
+  9c:	03 00 60 38 	li      r3,3
+  a0:	00 00 82 3d 	addis   r12,r2,0
+  a4:	00 00 8c e9 	ld      r12,0(r12)
+  a8:	a6 03 89 7d 	mtctr   r12
+  ac:	40 00 61 e9 	ld      r11,64(r1)
+  b0:	a6 03 68 7d 	mtlr    r11
+  b4:	30 00 21 38 	addi    r1,r1,48
+  b8:	20 04 80 4e 	bctr
+  bc:	a6 02 88 7f 	mflr    r28
+  c0:	26 00 60 3b 	li      r27,38
+  c4:	01 00 00 48 	bl      c4 <camlCas_test.check_279+0xac>
+  c8:	00 00 00 60 	nop
+  cc:	a6 03 88 7f 	mtlr    r28
+  d0:	1c 00 00 48 	b       ec <camlCas_test.entry+0x18>
+
+00000000000000d4 <camlCas_test.entry>:
+  d4:	00 00 4c 3c 	addis   r2,r12,0
+  d8:	00 00 42 38 	addi    r2,r2,0
+  dc:	28 00 7e e9 	ld      r11,40(r30)
+  e0:	68 01 6b 39 	addi    r11,r11,360
+  e4:	40 58 21 7c 	cmpld   r1,r11
+  e8:	d4 ff c1 40 	ble-    bc <camlCas_test.check_279+0xa4>
+  ec:	a6 02 08 7c 	mflr    r0
+  f0:	10 00 01 f8 	std     r0,16(r1)
+  f4:	08 00 41 f8 	std     r2,8(r1)
+  f8:	d0 ff 21 38 	addi    r1,r1,-48
+  fc:	00 00 82 3c 	addis   r4,r2,0
+ 100:	00 00 84 e8 	ld      r4,0(r4)
+ 104:	00 00 62 3c 	addis   r3,r2,0
+ 108:	00 00 63 e8 	ld      r3,0(r3)
+ 10c:	78 0b 3c 7c 	mr      r28,r1
+ 110:	40 00 3e e8 	ld      r1,64(r30)
+ 114:	01 00 00 48 	bl      114 <camlCas_test.entry+0x40>
+ 118:	00 00 00 60 	nop
+ 11c:	78 e3 81 7f 	mr      r1,r28
+ 120:	00 00 1e e8 	ld      r0,0(r30)
+ 124:	f0 ff ff 3b 	addi    r31,r31,-16
+ 128:	40 00 3f 7c 	cmpld   r31,r0
+ 12c:	15 07 c0 41 	bltl-   840 <camlCas_test.entry+0x76c>
+ 130:	08 00 bf 38 	addi    r5,r31,8
+ 134:	20 00 a1 f8 	std     r5,32(r1)
+ 138:	00 04 c0 38 	li      r6,1024
+ 13c:	f8 ff c5 f8 	std     r6,-8(r5)
+ 140:	15 00 e0 38 	li      r7,21
+ 144:	00 00 e5 f8 	std     r7,0(r5)
+ 148:	55 00 00 39 	li      r8,85
+ 14c:	c7 00 20 39 	li      r9,199
+ 150:	ac 04 00 7c 	hwsync
+ 154:	a8 28 00 7c 	ldarx   r0,0,r5
+ 158:	00 48 20 7c 	cmpd    r0,r9
+ 15c:	14 00 c2 40 	bne-    170 <camlCas_test.entry+0x9c>
+ 160:	ad 29 00 7d 	stdcx.  r8,0,r5
+ 164:	f0 ff c2 40 	bne-    154 <camlCas_test.entry+0x80>
+ 168:	01 00 40 39 	li      r10,1
+ 16c:	08 00 00 48 	b       174 <camlCas_test.entry+0xa0>
+ 170:	00 00 40 39 	li      r10,0
+ 174:	2c 01 00 4c 	isync
+ 178:	ac 04 20 7c 	lwsync
+ 17c:	a4 0f 4e 79 	sldi    r14,r10,1
+ 180:	01 00 ee 39 	addi    r15,r14,1
+ 184:	01 00 2f 2c 	cmpdi   r15,1
+ 188:	26 00 00 7c 	mfcr    r0
+ 18c:	fe 1f 10 54 	rlwinm  r16,r0,3,31,31
+ 190:	a4 0f 11 7a 	sldi    r17,r16,1
+ 194:	01 00 91 38 	addi    r4,r17,1
+ 198:	00 00 62 3c 	addis   r3,r2,0
+ 19c:	00 00 63 e8 	ld      r3,0(r3)
+ 1a0:	01 00 00 48 	bl      1a0 <camlCas_test.entry+0xcc>
+ 1a4:	00 00 00 60 	nop
+ 1a8:	38 00 41 e8 	ld      r2,56(r1)
+ 1ac:	20 00 c1 ea 	ld      r22,32(r1)
+ 1b0:	ac 04 00 7c 	hwsync
+ 1b4:	00 00 96 ea 	ld      r20,0(r22)
+ 1b8:	00 a0 14 7c 	cmpw    r20,r20
+ 1bc:	04 00 c2 40 	bne-    1c0 <camlCas_test.entry+0xec>
+ 1c0:	2c 01 00 4c 	isync
+ 1c4:	15 00 34 2c 	cmpdi   r20,21
+ 1c8:	26 00 00 7c 	mfcr    r0
+ 1cc:	fe 1f 15 54 	rlwinm  r21,r0,3,31,31
+ 1d0:	a4 0f b6 7a 	sldi    r22,r21,1
+ 1d4:	01 00 96 38 	addi    r4,r22,1
+ 1d8:	00 00 62 3c 	addis   r3,r2,0
+ 1dc:	00 00 63 e8 	ld      r3,0(r3)
+ 1e0:	01 00 00 48 	bl      1e0 <camlCas_test.entry+0x10c>
+ 1e4:	00 00 00 60 	nop
+ 1e8:	38 00 41 e8 	ld      r2,56(r1)
+ 1ec:	55 00 20 3b 	li      r25,85
+ 1f0:	15 00 40 3b 	li      r26,21
+ 1f4:	20 00 e1 ea 	ld      r23,32(r1)
+ 1f8:	ac 04 00 7c 	hwsync
+ 1fc:	a8 b8 00 7c 	ldarx   r0,0,r23
+ 200:	00 d0 20 7c 	cmpd    r0,r26
+ 204:	14 00 c2 40 	bne-    218 <camlCas_test.entry+0x144>
+ 208:	ad b9 20 7f 	stdcx.  r25,0,r23
+ 20c:	f0 ff c2 40 	bne-    1fc <camlCas_test.entry+0x128>
+ 210:	01 00 60 3b 	li      r27,1
+ 214:	08 00 00 48 	b       21c <camlCas_test.entry+0x148>
+ 218:	00 00 60 3b 	li      r27,0
+ 21c:	2c 01 00 4c 	isync
+ 220:	ac 04 20 7c 	lwsync
+ 224:	a4 0f 7c 7b 	sldi    r28,r27,1
+ 228:	01 00 7c 38 	addi    r3,r28,1
+ 22c:	03 00 23 2c 	cmpdi   r3,3
+ 230:	26 00 00 7c 	mfcr    r0
+ 234:	fe 1f 04 54 	rlwinm  r4,r0,3,31,31
+ 238:	a4 0f 85 78 	sldi    r5,r4,1
+ 23c:	01 00 85 38 	addi    r4,r5,1
+ 240:	00 00 62 3c 	addis   r3,r2,0
+ 244:	00 00 63 e8 	ld      r3,0(r3)
+ 248:	01 00 00 48 	bl      248 <camlCas_test.entry+0x174>
+ 24c:	00 00 00 60 	nop
+ 250:	38 00 41 e8 	ld      r2,56(r1)
+ 254:	20 00 01 eb 	ld      r24,32(r1)
+ 258:	ac 04 00 7c 	hwsync
+ 25c:	00 00 18 e9 	ld      r8,0(r24)
+ 260:	00 40 08 7c 	cmpw    r8,r8
+ 264:	04 00 c2 40 	bne-    268 <camlCas_test.entry+0x194>
+ 268:	2c 01 00 4c 	isync
+ 26c:	55 00 28 2c 	cmpdi   r8,85
+ 270:	26 00 00 7c 	mfcr    r0
+ 274:	fe 1f 09 54 	rlwinm  r9,r0,3,31,31
+ 278:	a4 0f 2a 79 	sldi    r10,r9,1
+ 27c:	01 00 8a 38 	addi    r4,r10,1
+ 280:	00 00 62 3c 	addis   r3,r2,0
+ 284:	00 00 63 e8 	ld      r3,0(r3)
+ 288:	01 00 00 48 	bl      288 <camlCas_test.entry+0x1b4>
+ 28c:	00 00 00 60 	nop
+ 290:	38 00 41 e8 	ld      r2,56(r1)
+ 294:	f3 ff 00 3a 	li      r16,-13
+ 298:	55 00 20 3a 	li      r17,85
+ 29c:	20 00 21 eb 	ld      r25,32(r1)
+ 2a0:	ac 04 00 7c 	hwsync
+ 2a4:	a8 c8 00 7c 	ldarx   r0,0,r25
+ 2a8:	00 88 20 7c 	cmpd    r0,r17
+ 2ac:	14 00 c2 40 	bne-    2c0 <camlCas_test.entry+0x1ec>
+ 2b0:	ad c9 00 7e 	stdcx.  r16,0,r25
+ 2b4:	f0 ff c2 40 	bne-    2a4 <camlCas_test.entry+0x1d0>
+ 2b8:	01 00 40 3a 	li      r18,1
+ 2bc:	08 00 00 48 	b       2c4 <camlCas_test.entry+0x1f0>
+ 2c0:	00 00 40 3a 	li      r18,0
+ 2c4:	2c 01 00 4c 	isync
+ 2c8:	ac 04 20 7c 	lwsync
+ 2cc:	a4 0f 53 7a 	sldi    r19,r18,1
+ 2d0:	01 00 93 3a 	addi    r20,r19,1
+ 2d4:	03 00 34 2c 	cmpdi   r20,3
+ 2d8:	26 00 00 7c 	mfcr    r0
+ 2dc:	fe 1f 15 54 	rlwinm  r21,r0,3,31,31
+ 2e0:	a4 0f b6 7a 	sldi    r22,r21,1
+ 2e4:	01 00 96 38 	addi    r4,r22,1
+ 2e8:	00 00 62 3c 	addis   r3,r2,0
+ 2ec:	00 00 63 e8 	ld      r3,0(r3)
+ 2f0:	01 00 00 48 	bl      2f0 <camlCas_test.entry+0x21c>
+ 2f4:	00 00 00 60 	nop
+ 2f8:	38 00 41 e8 	ld      r2,56(r1)
+ 2fc:	20 00 41 eb 	ld      r26,32(r1)
+ 300:	ac 04 00 7c 	hwsync
+ 304:	00 00 3a eb 	ld      r25,0(r26)
+ 308:	00 c8 19 7c 	cmpw    r25,r25
+ 30c:	04 00 c2 40 	bne-    310 <camlCas_test.entry+0x23c>
+ 310:	2c 01 00 4c 	isync
+ 314:	f3 ff 39 2c 	cmpdi   r25,-13
+ 318:	26 00 00 7c 	mfcr    r0
+ 31c:	fe 1f 1a 54 	rlwinm  r26,r0,3,31,31
+ 320:	a4 0f 5b 7b 	sldi    r27,r26,1
+ 324:	01 00 9b 38 	addi    r4,r27,1
+ 328:	00 00 62 3c 	addis   r3,r2,0
+ 32c:	00 00 63 e8 	ld      r3,0(r3)
+ 330:	01 00 00 48 	bl      330 <camlCas_test.entry+0x25c>
+ 334:	00 00 00 60 	nop
+ 338:	38 00 41 e8 	ld      r2,56(r1)
+ 33c:	01 00 80 38 	li      r4,1
+ 340:	f3 ff a0 38 	li      r5,-13
+ 344:	20 00 61 eb 	ld      r27,32(r1)
+ 348:	ac 04 00 7c 	hwsync
+ 34c:	a8 d8 00 7c 	ldarx   r0,0,r27
+ 350:	00 28 20 7c 	cmpd    r0,r5
+ 354:	14 00 c2 40 	bne-    368 <camlCas_test.entry+0x294>
+ 358:	ad d9 80 7c 	stdcx.  r4,0,r27
+ 35c:	f0 ff c2 40 	bne-    34c <camlCas_test.entry+0x278>
+ 360:	01 00 c0 38 	li      r6,1
+ 364:	08 00 00 48 	b       36c <camlCas_test.entry+0x298>
+ 368:	00 00 c0 38 	li      r6,0
+ 36c:	2c 01 00 4c 	isync
+ 370:	ac 04 20 7c 	lwsync
+ 374:	a4 0f c7 78 	sldi    r7,r6,1
+ 378:	01 00 07 39 	addi    r8,r7,1
+ 37c:	03 00 28 2c 	cmpdi   r8,3
+ 380:	26 00 00 7c 	mfcr    r0
+ 384:	fe 1f 09 54 	rlwinm  r9,r0,3,31,31
+ 388:	a4 0f 2a 79 	sldi    r10,r9,1
+ 38c:	01 00 8a 38 	addi    r4,r10,1
+ 390:	00 00 62 3c 	addis   r3,r2,0
+ 394:	00 00 63 e8 	ld      r3,0(r3)
+ 398:	01 00 00 48 	bl      398 <camlCas_test.entry+0x2c4>
+ 39c:	00 00 00 60 	nop
+ 3a0:	38 00 41 e8 	ld      r2,56(r1)
+ 3a4:	20 00 81 eb 	ld      r28,32(r1)
+ 3a8:	ac 04 00 7c 	hwsync
+ 3ac:	00 00 1c ea 	ld      r16,0(r28)
+ 3b0:	00 80 10 7c 	cmpw    r16,r16
+ 3b4:	04 00 c2 40 	bne-    3b8 <camlCas_test.entry+0x2e4>
+ 3b8:	2c 01 00 4c 	isync
+ 3bc:	01 00 30 2c 	cmpdi   r16,1
+ 3c0:	26 00 00 7c 	mfcr    r0
+ 3c4:	fe 1f 11 54 	rlwinm  r17,r0,3,31,31
+ 3c8:	a4 0f 32 7a 	sldi    r18,r17,1
+ 3cc:	01 00 92 38 	addi    r4,r18,1
+ 3d0:	00 00 62 3c 	addis   r3,r2,0
+ 3d4:	00 00 63 e8 	ld      r3,0(r3)
+ 3d8:	01 00 00 48 	bl      3d8 <camlCas_test.entry+0x304>
+ 3dc:	00 00 00 60 	nop
+ 3e0:	38 00 41 e8 	ld      r2,56(r1)
+ 3e4:	01 00 a0 3a 	li      r21,1
+ 3e8:	01 00 c0 3a 	li      r22,1
+ 3ec:	20 00 61 e8 	ld      r3,32(r1)
+ 3f0:	ac 04 00 7c 	hwsync
+ 3f4:	a8 18 00 7c 	ldarx   r0,0,r3
+ 3f8:	00 b0 20 7c 	cmpd    r0,r22
+ 3fc:	14 00 c2 40 	bne-    410 <camlCas_test.entry+0x33c>
+ 400:	ad 19 a0 7e 	stdcx.  r21,0,r3
+ 404:	f0 ff c2 40 	bne-    3f4 <camlCas_test.entry+0x320>
+ 408:	01 00 e0 3a 	li      r23,1
+ 40c:	08 00 00 48 	b       414 <camlCas_test.entry+0x340>
+ 410:	00 00 e0 3a 	li      r23,0
+ 414:	2c 01 00 4c 	isync
+ 418:	ac 04 20 7c 	lwsync
+ 41c:	a4 0f f8 7a 	sldi    r24,r23,1
+ 420:	01 00 38 3b 	addi    r25,r24,1
+ 424:	03 00 39 2c 	cmpdi   r25,3
+ 428:	26 00 00 7c 	mfcr    r0
+ 42c:	fe 1f 1a 54 	rlwinm  r26,r0,3,31,31
+ 430:	a4 0f 5b 7b 	sldi    r27,r26,1
+ 434:	01 00 9b 38 	addi    r4,r27,1
+ 438:	00 00 62 3c 	addis   r3,r2,0
+ 43c:	00 00 63 e8 	ld      r3,0(r3)
+ 440:	01 00 00 48 	bl      440 <camlCas_test.entry+0x36c>
+ 444:	00 00 00 60 	nop
+ 448:	38 00 41 e8 	ld      r2,56(r1)
+ 44c:	20 00 81 e8 	ld      r4,32(r1)
+ 450:	ac 04 00 7c 	hwsync
+ 454:	00 00 84 e8 	ld      r4,0(r4)
+ 458:	00 20 04 7c 	cmpw    r4,r4
+ 45c:	04 00 c2 40 	bne-    460 <camlCas_test.entry+0x38c>
+ 460:	2c 01 00 4c 	isync
+ 464:	01 00 24 2c 	cmpdi   r4,1
+ 468:	26 00 00 7c 	mfcr    r0
+ 46c:	fe 1f 05 54 	rlwinm  r5,r0,3,31,31
+ 470:	a4 0f a6 78 	sldi    r6,r5,1
+ 474:	01 00 86 38 	addi    r4,r6,1
+ 478:	00 00 62 3c 	addis   r3,r2,0
+ 47c:	00 00 63 e8 	ld      r3,0(r3)
+ 480:	01 00 00 48 	bl      480 <camlCas_test.entry+0x3ac>
+ 484:	00 00 00 60 	nop
+ 488:	38 00 41 e8 	ld      r2,56(r1)
+ 48c:	0b 00 20 39 	li      r9,11
+ 490:	20 00 a1 e8 	ld      r5,32(r1)
+ 494:	ac 04 00 7c 	hwsync
+ 498:	a8 28 40 7d 	ldarx   r10,0,r5
+ 49c:	ad 29 20 7d 	stdcx.  r9,0,r5
+ 4a0:	f8 ff c2 40 	bne-    498 <camlCas_test.entry+0x3c4>
+ 4a4:	2c 01 00 4c 	isync
+ 4a8:	ac 04 20 7c 	lwsync
+ 4ac:	01 00 2a 2c 	cmpdi   r10,1
+ 4b0:	26 00 00 7c 	mfcr    r0
+ 4b4:	fe 1f 0e 54 	rlwinm  r14,r0,3,31,31
+ 4b8:	a4 0f cf 79 	sldi    r15,r14,1
+ 4bc:	01 00 8f 38 	addi    r4,r15,1
+ 4c0:	00 00 62 3c 	addis   r3,r2,0
+ 4c4:	00 00 63 e8 	ld      r3,0(r3)
+ 4c8:	01 00 00 48 	bl      4c8 <camlCas_test.entry+0x3f4>
+ 4cc:	00 00 00 60 	nop
+ 4d0:	38 00 41 e8 	ld      r2,56(r1)
+ 4d4:	20 00 c1 e8 	ld      r6,32(r1)
+ 4d8:	ac 04 00 7c 	hwsync
+ 4dc:	00 00 46 ea 	ld      r18,0(r6)
+ 4e0:	00 90 12 7c 	cmpw    r18,r18
+ 4e4:	04 00 c2 40 	bne-    4e8 <camlCas_test.entry+0x414>
+ 4e8:	2c 01 00 4c 	isync
+ 4ec:	0b 00 32 2c 	cmpdi   r18,11
+ 4f0:	26 00 00 7c 	mfcr    r0
+ 4f4:	fe 1f 13 54 	rlwinm  r19,r0,3,31,31
+ 4f8:	a4 0f 74 7a 	sldi    r20,r19,1
+ 4fc:	01 00 94 38 	addi    r4,r20,1
+ 500:	00 00 62 3c 	addis   r3,r2,0
+ 504:	00 00 63 e8 	ld      r3,0(r3)
+ 508:	01 00 00 48 	bl      508 <camlCas_test.entry+0x434>
+ 50c:	00 00 00 60 	nop
+ 510:	38 00 41 e8 	ld      r2,56(r1)
+ 514:	ff ff e0 3a 	li      r23,-1
+ 518:	20 00 e1 e8 	ld      r7,32(r1)
+ 51c:	ac 04 00 7c 	hwsync
+ 520:	a8 38 00 7f 	ldarx   r24,0,r7
+ 524:	ad 39 e0 7e 	stdcx.  r23,0,r7
+ 528:	f8 ff c2 40 	bne-    520 <camlCas_test.entry+0x44c>
+ 52c:	2c 01 00 4c 	isync
+ 530:	ac 04 20 7c 	lwsync
+ 534:	0b 00 38 2c 	cmpdi   r24,11
+ 538:	26 00 00 7c 	mfcr    r0
+ 53c:	fe 1f 19 54 	rlwinm  r25,r0,3,31,31
+ 540:	a4 0f 3a 7b 	sldi    r26,r25,1
+ 544:	01 00 9a 38 	addi    r4,r26,1
+ 548:	00 00 62 3c 	addis   r3,r2,0
+ 54c:	00 00 63 e8 	ld      r3,0(r3)
+ 550:	01 00 00 48 	bl      550 <camlCas_test.entry+0x47c>
+ 554:	00 00 00 60 	nop
+ 558:	38 00 41 e8 	ld      r2,56(r1)
+ 55c:	20 00 01 e9 	ld      r8,32(r1)
+ 560:	ac 04 00 7c 	hwsync
+ 564:	00 00 68 e8 	ld      r3,0(r8)
+ 568:	00 18 03 7c 	cmpw    r3,r3
+ 56c:	04 00 c2 40 	bne-    570 <camlCas_test.entry+0x49c>
+ 570:	2c 01 00 4c 	isync
+ 574:	ff ff 23 2c 	cmpdi   r3,-1
+ 578:	26 00 00 7c 	mfcr    r0
+ 57c:	fe 1f 04 54 	rlwinm  r4,r0,3,31,31
+ 580:	a4 0f 85 78 	sldi    r5,r4,1
+ 584:	01 00 85 38 	addi    r4,r5,1
+ 588:	00 00 62 3c 	addis   r3,r2,0
+ 58c:	00 00 63 e8 	ld      r3,0(r3)
+ 590:	01 00 00 48 	bl      590 <camlCas_test.entry+0x4bc>
+ 594:	00 00 00 60 	nop
+ 598:	38 00 41 e8 	ld      r2,56(r1)
+ 59c:	00 00 1e e8 	ld      r0,0(r30)
+ 5a0:	f0 ff ff 3b 	addi    r31,r31,-16
+ 5a4:	40 00 3f 7c 	cmpld   r31,r0
+ 5a8:	99 02 c0 41 	bltl-   840 <camlCas_test.entry+0x76c>
+ 5ac:	08 00 1f 39 	addi    r8,r31,8
+ 5b0:	20 00 01 f9 	std     r8,32(r1)
+ 5b4:	00 04 20 39 	li      r9,1024
+ 5b8:	f8 ff 28 f9 	std     r9,-8(r8)
+ 5bc:	03 00 40 39 	li      r10,3
+ 5c0:	00 00 48 f9 	std     r10,0(r8)
+ 5c4:	01 00 c0 39 	li      r14,1
+ 5c8:	03 00 e0 39 	li      r15,3
+ 5cc:	ac 04 00 7c 	hwsync
+ 5d0:	a8 40 00 7c 	ldarx   r0,0,r8
+ 5d4:	00 78 20 7c 	cmpd    r0,r15
+ 5d8:	14 00 c2 40 	bne-    5ec <camlCas_test.entry+0x518>
+ 5dc:	ad 41 c0 7d 	stdcx.  r14,0,r8
+ 5e0:	f0 ff c2 40 	bne-    5d0 <camlCas_test.entry+0x4fc>
+ 5e4:	01 00 00 3a 	li      r16,1
+ 5e8:	08 00 00 48 	b       5f0 <camlCas_test.entry+0x51c>
+ 5ec:	00 00 00 3a 	li      r16,0
+ 5f0:	2c 01 00 4c 	isync
+ 5f4:	ac 04 20 7c 	lwsync
+ 5f8:	a4 0f 11 7a 	sldi    r17,r16,1
+ 5fc:	01 00 51 3a 	addi    r18,r17,1
+ 600:	03 00 32 2c 	cmpdi   r18,3
+ 604:	26 00 00 7c 	mfcr    r0
+ 608:	fe 1f 13 54 	rlwinm  r19,r0,3,31,31
+ 60c:	a4 0f 74 7a 	sldi    r20,r19,1
+ 610:	01 00 94 38 	addi    r4,r20,1
+ 614:	00 00 62 3c 	addis   r3,r2,0
+ 618:	00 00 63 e8 	ld      r3,0(r3)
+ 61c:	01 00 00 48 	bl      61c <camlCas_test.entry+0x548>
+ 620:	00 00 00 60 	nop
+ 624:	38 00 41 e8 	ld      r2,56(r1)
+ 628:	20 00 21 e9 	ld      r9,32(r1)
+ 62c:	ac 04 00 7c 	hwsync
+ 630:	00 00 e9 ea 	ld      r23,0(r9)
+ 634:	00 b8 17 7c 	cmpw    r23,r23
+ 638:	04 00 c2 40 	bne-    63c <camlCas_test.entry+0x568>
+ 63c:	2c 01 00 4c 	isync
+ 640:	01 00 37 2c 	cmpdi   r23,1
+ 644:	26 00 00 7c 	mfcr    r0
+ 648:	fe 1f 18 54 	rlwinm  r24,r0,3,31,31
+ 64c:	a4 0f 19 7b 	sldi    r25,r24,1
+ 650:	01 00 99 38 	addi    r4,r25,1
+ 654:	00 00 62 3c 	addis   r3,r2,0
+ 658:	00 00 63 e8 	ld      r3,0(r3)
+ 65c:	01 00 00 48 	bl      65c <camlCas_test.entry+0x588>
+ 660:	00 00 00 60 	nop
+ 664:	38 00 41 e8 	ld      r2,56(r1)
+ 668:	01 00 80 3b 	li      r28,1
+ 66c:	03 00 60 38 	li      r3,3
+ 670:	20 00 41 e9 	ld      r10,32(r1)
+ 674:	ac 04 00 7c 	hwsync
+ 678:	a8 50 00 7c 	ldarx   r0,0,r10
+ 67c:	00 18 20 7c 	cmpd    r0,r3
+ 680:	14 00 c2 40 	bne-    694 <camlCas_test.entry+0x5c0>
+ 684:	ad 51 80 7f 	stdcx.  r28,0,r10
+ 688:	f0 ff c2 40 	bne-    678 <camlCas_test.entry+0x5a4>
+ 68c:	01 00 80 38 	li      r4,1
+ 690:	08 00 00 48 	b       698 <camlCas_test.entry+0x5c4>
+ 694:	00 00 80 38 	li      r4,0
+ 698:	2c 01 00 4c 	isync
+ 69c:	ac 04 20 7c 	lwsync
+ 6a0:	a4 0f 85 78 	sldi    r5,r4,1
+ 6a4:	01 00 c5 38 	addi    r6,r5,1
+ 6a8:	01 00 26 2c 	cmpdi   r6,1
+ 6ac:	26 00 00 7c 	mfcr    r0
+ 6b0:	fe 1f 07 54 	rlwinm  r7,r0,3,31,31
+ 6b4:	a4 0f e8 78 	sldi    r8,r7,1
+ 6b8:	01 00 88 38 	addi    r4,r8,1
+ 6bc:	00 00 62 3c 	addis   r3,r2,0
+ 6c0:	00 00 63 e8 	ld      r3,0(r3)
+ 6c4:	01 00 00 48 	bl      6c4 <camlCas_test.entry+0x5f0>
+ 6c8:	00 00 00 60 	nop
+ 6cc:	38 00 41 e8 	ld      r2,56(r1)
+ 6d0:	00 00 1e e8 	ld      r0,0(r30)
+ 6d4:	f0 ff ff 3b 	addi    r31,r31,-16
+ 6d8:	40 00 3f 7c 	cmpld   r31,r0
+ 6dc:	65 01 c0 41 	bltl-   840 <camlCas_test.entry+0x76c>
+ 6e0:	08 00 df 39 	addi    r14,r31,8
+ 6e4:	20 00 c1 f9 	std     r14,32(r1)
+ 6e8:	00 04 e0 39 	li      r15,1024
+ 6ec:	f8 ff ee f9 	std     r15,-8(r14)
+ 6f0:	03 00 00 3a 	li      r16,3
+ 6f4:	00 00 0e fa 	std     r16,0(r14)
+ 6f8:	05 00 20 3a 	li      r17,5
+ 6fc:	03 00 40 3a 	li      r18,3
+ 700:	ac 04 00 7c 	hwsync
+ 704:	a8 70 00 7c 	ldarx   r0,0,r14
+ 708:	00 90 20 7c 	cmpd    r0,r18
+ 70c:	14 00 c2 40 	bne-    720 <camlCas_test.entry+0x64c>
+ 710:	ad 71 20 7e 	stdcx.  r17,0,r14
+ 714:	f0 ff c2 40 	bne-    704 <camlCas_test.entry+0x630>
+ 718:	01 00 60 3a 	li      r19,1
+ 71c:	08 00 00 48 	b       724 <camlCas_test.entry+0x650>
+ 720:	00 00 60 3a 	li      r19,0
+ 724:	2c 01 00 4c 	isync
+ 728:	ac 04 20 7c 	lwsync
+ 72c:	00 00 33 2c 	cmpdi   r19,0
+ 730:	10 00 82 41 	beq     740 <camlCas_test.entry+0x66c>
+ 734:	00 00 62 3c 	addis   r3,r2,0
+ 738:	00 00 63 e8 	ld      r3,0(r3)
+ 73c:	0c 00 00 48 	b       748 <camlCas_test.entry+0x674>
+ 740:	00 00 62 3c 	addis   r3,r2,0
+ 744:	00 00 63 e8 	ld      r3,0(r3)
+ 748:	00 00 82 3c 	addis   r4,r2,0
+ 74c:	00 00 84 e8 	ld      r4,0(r4)
+ 750:	78 0b 3c 7c 	mr      r28,r1
+ 754:	40 00 3e e8 	ld      r1,64(r30)
+ 758:	01 00 00 48 	bl      758 <camlCas_test.entry+0x684>
+ 75c:	00 00 00 60 	nop
+ 760:	78 e3 81 7f 	mr      r1,r28
+ 764:	78 1b 64 7c 	mr      r4,r3
+ 768:	00 00 62 3c 	addis   r3,r2,0
+ 76c:	00 00 63 e8 	ld      r3,0(r3)
+ 770:	01 00 00 48 	bl      770 <camlCas_test.entry+0x69c>
+ 774:	00 00 00 60 	nop
+ 778:	38 00 41 e8 	ld      r2,56(r1)
+ 77c:	01 00 20 3b 	li      r25,1
+ 780:	03 00 60 3b 	li      r27,3
+ 784:	d1 07 3b 2c 	cmpdi   r27,2001
+ 788:	68 00 81 41 	bgt     7f0 <camlCas_test.entry+0x71c>
+ 78c:	05 00 60 38 	li      r3,5
+ 790:	05 00 80 38 	li      r4,5
+ 794:	20 00 c1 e9 	ld      r14,32(r1)
+ 798:	ac 04 00 7c 	hwsync
+ 79c:	a8 70 00 7c 	ldarx   r0,0,r14
+ 7a0:	00 20 20 7c 	cmpd    r0,r4
+ 7a4:	14 00 c2 40 	bne-    7b8 <camlCas_test.entry+0x6e4>
+ 7a8:	ad 71 60 7c 	stdcx.  r3,0,r14
+ 7ac:	f0 ff c2 40 	bne-    79c <camlCas_test.entry+0x6c8>
+ 7b0:	01 00 a0 38 	li      r5,1
+ 7b4:	08 00 00 48 	b       7bc <camlCas_test.entry+0x6e8>
+ 7b8:	00 00 a0 38 	li      r5,0
+ 7bc:	2c 01 00 4c 	isync
+ 7c0:	ac 04 20 7c 	lwsync
+ 7c4:	00 00 25 2c 	cmpdi   r5,0
+ 7c8:	08 00 82 41 	beq     7d0 <camlCas_test.entry+0x6fc>
+ 7cc:	02 00 39 3b 	addi    r25,r25,2
+ 7d0:	78 db 68 7f 	mr      r8,r27
+ 7d4:	02 00 7b 3b 	addi    r27,r27,2
+ 7d8:	d1 07 28 2c 	cmpdi   r8,2001
+ 7dc:	14 00 82 41 	beq     7f0 <camlCas_test.entry+0x71c>
+ 7e0:	00 00 1e e8 	ld      r0,0(r30)
+ 7e4:	40 00 3f 7c 	cmpld   r31,r0
+ 7e8:	59 00 c0 41 	bltl-   840 <camlCas_test.entry+0x76c>
+ 7ec:	a0 ff ff 4b 	b       78c <camlCas_test.entry+0x6b8>
+ 7f0:	d1 07 39 2c 	cmpdi   r25,2001
+ 7f4:	26 00 00 7c 	mfcr    r0
+ 7f8:	fe 1f 0f 54 	rlwinm  r15,r0,3,31,31
+ 7fc:	a4 0f f0 79 	sldi    r16,r15,1
+ 800:	01 00 90 38 	addi    r4,r16,1
+ 804:	00 00 62 3c 	addis   r3,r2,0
+ 808:	00 00 63 e8 	ld      r3,0(r3)
+ 80c:	01 00 00 48 	bl      80c <camlCas_test.entry+0x738>
+ 810:	00 00 00 60 	nop
+ 814:	38 00 41 e8 	ld      r2,56(r1)
+ 818:	00 00 62 3c 	addis   r3,r2,0
+ 81c:	00 00 63 e8 	ld      r3,0(r3)
+ 820:	01 00 00 48 	bl      820 <camlCas_test.entry+0x74c>
+ 824:	00 00 00 60 	nop
+ 828:	38 00 41 e8 	ld      r2,56(r1)
+ 82c:	01 00 60 38 	li      r3,1
+ 830:	40 00 61 e9 	ld      r11,64(r1)
+ 834:	a6 03 68 7d 	mtlr    r11
+ 838:	30 00 21 38 	addi    r1,r1,48
+ 83c:	20 00 80 4e 	blr
+ 840:	18 00 41 f8 	std     r2,24(r1)
+ 844:	00 00 82 3d 	addis   r12,r2,0
+ 848:	00 00 8c e9 	ld      r12,0(r12)
+ 84c:	a6 03 89 7d 	mtctr   r12
+ 850:	20 04 80 4e 	bctr
+
+0000000000000854 <camlCas_test.code_end>:
+ 854:	00 00 00 00                                         ....

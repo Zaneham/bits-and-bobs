@@ -1,0 +1,657 @@
+From <commit> Mon Sep 17 00:00:00 2001
+From: <author>
+Date: 2026-08-02
+Subject: [PATCH 3/5] asmcomp: emit native atomic exchange and cas on amd64,
+ arm64, riscv, power
+
+---
+ asmcomp/CSEgen.ml           |  3 ++-
+ asmcomp/amd64/emit.mlp      | 32 +++++++++++++++++++++++++++
+ asmcomp/amd64/selection.ml  | 17 ++++++++++++++
+ asmcomp/arm64/emit.mlp      | 32 +++++++++++++++++++++++++++
+ asmcomp/arm64/proc.ml       |  3 +++
+ asmcomp/cmm.ml              |  2 ++
+ asmcomp/cmm.mli             |  2 ++
+ asmcomp/cmmgen.ml           | 44 ++++++++++++++++++++++++++-----------
+ asmcomp/interf.ml           | 15 +++++++++++++
+ asmcomp/mach.ml             |  5 ++++-
+ asmcomp/mach.mli            |  2 ++
+ asmcomp/polling.ml          |  3 ++-
+ asmcomp/power/emit.mlp      | 34 ++++++++++++++++++++++++++++
+ asmcomp/printcmm.ml         |  2 ++
+ asmcomp/printmach.ml        |  4 ++++
+ asmcomp/riscv/emit.mlp      | 23 +++++++++++++++++++
+ asmcomp/s390x/emit.mlp      |  3 +++
+ asmcomp/schedgen.ml         |  3 ++-
+ asmcomp/selectgen.ml        |  8 +++++--
+ asmcomp/thread_sanitizer.ml |  6 ++++-
+ asmcomp/x86_ast.mli         |  2 ++
+ asmcomp/x86_dsl.ml          |  2 ++
+ asmcomp/x86_dsl.mli         |  2 ++
+ asmcomp/x86_gas.ml          |  2 ++
+ asmcomp/x86_masm.ml         |  2 ++
+ 25 files changed, 233 insertions(+), 20 deletions(-)
+
+diff --git a/asmcomp/CSEgen.ml b/asmcomp/CSEgen.ml
+index e10dbd09a4..ff722d75ab 100644
+--- a/asmcomp/CSEgen.ml
++++ b/asmcomp/CSEgen.ml
+@@ -237,7 +237,8 @@ method class_of_operation op =
+       if is_atomic then Op_store true
+       else Op_load mutability
+   | Istore(_,_,asg) -> Op_store asg
+-  | Iatomic_fetch_add -> Op_store true  (* atomic read-modify-write *)
++  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_cas ->
++      Op_store true  (* atomic read-modify-write *)
+   | Ialloc _ | Ipoll _ -> assert false     (* treated specially *)
+   | Iintop(Icheckbound) -> Op_checkbound
+   | Iintop _ -> Op_pure
+diff --git a/asmcomp/amd64/emit.mlp b/asmcomp/amd64/emit.mlp
+index 802207bda5..da13de4a9a 100644
+--- a/asmcomp/amd64/emit.mlp
++++ b/asmcomp/amd64/emit.mlp
+@@ -758,6 +758,38 @@ let emit_instr env fallthrough i =
+       def_label lbl_multi;
+       I.lock_xadd (res i 0) (mem64 QWORD 0 (arg64 i 0));
+       def_label lbl_done
++  | Lop (Iatomic_exchange) ->
++      (* res.(0) arrives holding the new value and leaves holding the old one.
++         xchg against memory carries an implicit lock, so the single-domain
++         path spells it out as a load and a store through res.(1). *)
++      let lbl_multi = new_label() in
++      let lbl_done = new_label() in
++      I.cmp (int 1) (mem64 QWORD 0 (arg64 i 2));
++      I.jne (label lbl_multi);
++      I.mov (mem64 QWORD 0 (arg64 i 0)) (res i 1);
++      I.mov (res i 0) (mem64 QWORD 0 (arg64 i 0));
++      I.mov (res i 1) (res i 0);
++      I.jmp (label lbl_done);
++      def_label lbl_multi;
++      I.xchg (res i 0) (mem64 QWORD 0 (arg64 i 0));
++      def_label lbl_done
++  | Lop (Iatomic_cas) ->
++      (* rax holds the expected value on entry. cmpxchg sets ZF on success and
++         otherwise loads what it found into rax, which we overwrite anyway.
++         Unlocked cmpxchg has the same semantics for a lone domain. *)
++      let lbl_multi = new_label() in
++      let lbl_done = new_label() in
++      I.cmp (int 1) (mem64 QWORD 0 (arg64 i 3));
++      I.jne (label lbl_multi);
++      I.cmpxchg (arg i 2) (mem64 QWORD 0 (arg64 i 0));
++      I.jmp (label lbl_done);
++      def_label lbl_multi;
++      I.lock_cmpxchg (arg i 2) (mem64 QWORD 0 (arg64 i 0));
++      def_label lbl_done;
++      (* res.(0) is rax, so al is free to take ZF before we widen it. cmmgen
++         tags the 0/1 the same way it tags any other comparison. *)
++      I.set E al;
++      I.movzx al (res i 0)
+   | Lop (Ireturn_addr) ->
+       let offset = frame_size env - 8 in
+       I.mov (mem64 QWORD offset RSP) (res i 0)
+diff --git a/asmcomp/amd64/selection.ml b/asmcomp/amd64/selection.ml
+index b71fd07c26..d211902250 100644
+--- a/asmcomp/amd64/selection.ml
++++ b/asmcomp/amd64/selection.ml
+@@ -130,6 +130,17 @@ let pseudoregs_for_operation op arg res =
+      no separate mov is needed in emit. arg.(2) is &caml_num_domains_running. *)
+   | Iatomic_fetch_add ->
+       ([| arg.(0); res.(0); arg.(2) |], res)
++  (* Same trick for exchange, res.(0) carries the new value into the swap and
++     comes back holding the old one. xchg on memory is always locked, so the
++     single-domain path needs a scratch to do it with plain moves instead. *)
++  | Iatomic_exchange ->
++      let treg = Reg.create Int in
++      ([| arg.(0); res.(0); arg.(2) |], [| res.(0); treg |])
++  (* cmpxchg compares against rax and overwrites it with the value it found,
++     so the expected value goes in rax and the tagged result comes back there
++     too. arg.(3) is &caml_num_domains_running. *)
++  | Iatomic_cas ->
++      ([| arg.(0); rax; arg.(2); arg.(3) |], [| rax |])
+   (* Other instructions are regular *)
+   | _ -> raise Use_default
+ 
+@@ -270,6 +281,12 @@ method! select_operation op args dbg =
+          hence a register. *)
+       (Iatomic_fetch_add,
+        args @ [Cconst_symbol ("caml_num_domains_running", dbg)])
++  | Catomic_exchange ->
++      (Iatomic_exchange,
++       args @ [Cconst_symbol ("caml_num_domains_running", dbg)])
++  | Catomic_cas ->
++      (Iatomic_cas,
++       args @ [Cconst_symbol ("caml_num_domains_running", dbg)])
+   | _ -> super#select_operation op args dbg
+ 
+ (* Recognize float arithmetic with mem *)
+diff --git a/asmcomp/arm64/emit.mlp b/asmcomp/arm64/emit.mlp
+index dedd4d7a17..b237b9ebe3 100644
+--- a/asmcomp/arm64/emit.mlp
++++ b/asmcomp/arm64/emit.mlp
+@@ -531,6 +531,8 @@ module Size = struct
+     | Lop (Ispecific (Isignext _)) -> 1
+     | Lop (Idls_get) -> 1
+     | Lop (Iatomic_fetch_add) -> 5
++    | Lop (Iatomic_exchange) -> 4
++    | Lop (Iatomic_cas) -> 9
+     | Lop (Ireturn_addr) -> 1
+     | Lreloadretaddr -> 0
+     | Lreturn -> epilogue_size f + (if top_bits_ignore then 0 else 1)
+@@ -1002,6 +1004,36 @@ let emit_instr env i =
+     | Lop(Idls_get) ->
+         let offset = Domainstate.(idx_of_field Domain_dls_root) * 8 in
+         `	ldr	{emit_reg i.res.(0)}, [{emit_reg reg_domain_state_ptr}, {emit_int offset}]\n`
++    | Lop(Iatomic_exchange) ->
++        (* Same LL/SC shape as fetch-and-add, minus the arithmetic. reg_tmp2
++           takes the stlxr status, which must differ from the data register. *)
++        let lbl = new_label() in
++        `{emit_label lbl}:\n`;
++        `	ldaxr	{emit_reg i.res.(0)}, [{emit_reg i.arg.(0)}]\n`;
++        `	stlxr	{emit_wreg reg_tmp2}, {emit_reg i.arg.(1)}, [{emit_reg i.arg.(0)}]\n`;
++        `	cbnz	{emit_wreg reg_tmp2}, {emit_label lbl}\n`;
++        `	dmb	ishst\n`
++    | Lop(Iatomic_cas) ->
++        (* res.(0) holds the loaded value until the very end, where cset
++           overwrites it with the result. The flags set by cmp survive stlxr,
++           cbnz, b and clrex, so both paths land on the same cset.
++           clrex is not architecturally required for an abandoned ldaxr (ARM
++           ARM B2.10.5) but drops the monitor rather than leaving it marked. *)
++        let lbl = new_label() in
++        let lbl_fail = new_label() in
++        let lbl_done = new_label() in
++        `{emit_label lbl}:\n`;
++        `	ldaxr	{emit_reg i.res.(0)}, [{emit_reg i.arg.(0)}]\n`;
++        `	cmp	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}\n`;
++        `	b.ne	{emit_label lbl_fail}\n`;
++        `	stlxr	{emit_wreg reg_tmp2}, {emit_reg i.arg.(2)}, [{emit_reg i.arg.(0)}]\n`;
++        `	cbnz	{emit_wreg reg_tmp2}, {emit_label lbl}\n`;
++        `	b	{emit_label lbl_done}\n`;
++        `{emit_label lbl_fail}:\n`;
++        `	clrex\n`;
++        `{emit_label lbl_done}:\n`;
++        `	cset	{emit_reg i.res.(0)}, eq\n`;
++        `	dmb	ishst\n`
+     | Lop(Iatomic_fetch_add) ->
+         (* LL/SC loop, works on baseline ARMv8.0 (no LSE required).
+            reg_tmp1 = sum (data), reg_tmp2 = stlxr status (must differ per ARM spec).
+diff --git a/asmcomp/arm64/proc.ml b/asmcomp/arm64/proc.ml
+index 615a6f314d..d566328da8 100644
+--- a/asmcomp/arm64/proc.ml
++++ b/asmcomp/arm64/proc.ml
+@@ -271,6 +271,8 @@ let destroyed_at_oper = function
+       [| reg_d7 |]            (* d7 / s7 destroyed *)
+   | Iop(Iatomic_fetch_add) ->
+       [| reg_x16; reg_x17 |]  (* x16=sum, x17=stlxr status in LL/SC loop *)
++  | Iop(Iatomic_exchange | Iatomic_cas) ->
++      [| reg_x17 |]           (* x17=stlxr status in LL/SC loop *)
+   | _ -> [||]
+ 
+ let destroyed_at_raise = all_phys_regs
+@@ -290,6 +292,7 @@ let max_register_pressure = function
+   | Iintoffloat | Ifloatofint
+   | Iload{memory_chunk=Single; _} | Istore(Single, _, _) -> [| 23; 31 |]
+   | Iatomic_fetch_add -> [| 21; 32 |]  (* x16+x17 used as scratch *)
++  | Iatomic_exchange | Iatomic_cas -> [| 22; 32 |]  (* x17 used as scratch *)
+   | _ -> [| 23; 32 |]
+ 
+ (* Calling the assembler *)
+diff --git a/asmcomp/cmm.ml b/asmcomp/cmm.ml
+index ee9562643a..98fb985a8e 100644
+--- a/asmcomp/cmm.ml
++++ b/asmcomp/cmm.ml
+@@ -170,6 +170,8 @@ and operation =
+   | Ccheckbound
+   | Copaque
+   | Catomic_fetch_add
++  | Catomic_exchange
++  | Catomic_cas
+   | Cdls_get
+   | Cpoll
+ 
+diff --git a/asmcomp/cmm.mli b/asmcomp/cmm.mli
+index 7bb195d73c..b956cd864d 100644
+--- a/asmcomp/cmm.mli
++++ b/asmcomp/cmm.mli
+@@ -169,6 +169,8 @@ and operation =
+                    or equal to the bound. *)
+   | Copaque (* Sys.opaque_identity *)
+   | Catomic_fetch_add (* Atomic read-modify-write: fetch old value and add *)
++  | Catomic_exchange (* Atomic swap: store a value, return the old one *)
++  | Catomic_cas (* Atomic compare-and-set, returns a tagged boolean *)
+   | Cdls_get
+   | Cpoll
+ 
+diff --git a/asmcomp/cmmgen.ml b/asmcomp/cmmgen.ml
+index b89444fe49..fcb1cb25d4 100644
+--- a/asmcomp/cmmgen.ml
++++ b/asmcomp/cmmgen.ml
+@@ -358,6 +358,14 @@ let machtype_of_value_kind (value_kind : Lambda.value_kind) =
+   | Pintval ->
+       Cmm.typ_int
+ 
++(* s390x still keeps the C call, as does TSan, where the instrumentation lives
++   in the runtime call. *)
++let native_atomics =
++  not Config.tsan
++  && match Config.architecture with
++     | "amd64" | "arm64" | "riscv" | "power" -> true
++     | _ -> false
++
+ (* Translate an expression *)
+ 
+ let rec transl env e =
+@@ -481,18 +489,17 @@ let rec transl env e =
+           make_alloc dbg tag (List.map (transl env) args)
+       | (Pccall prim, args) ->
+           transl_ccall env prim args dbg
+-      | (Patomic_exchange, args) ->
+-          (* Lowered to the C call for now; the native, barrier-free path is
+-             added in a later step (only when the value is immediate). *)
+-          transl_ccall env
+-            (Primitive.simple ~name:"caml_atomic_exchange_field"
+-               ~arity:3 ~alloc:false)
+-            args dbg
++      | (Patomic_cas, [ptr; ofs; oldval; newval]) when native_atomics ->
++          (* translprim only builds this when the value is immediate, so there
++             is no write barrier to run and the instruction is the whole job. *)
++          tag_int
++            (Cop(Catomic_cas,
++                 [field_address_computed (transl env ptr) (transl env ofs) dbg;
++                  transl env oldval; transl env newval], dbg))
++            dbg
+       | (Patomic_cas, args) ->
+-          transl_ccall env
+-            (Primitive.simple ~name:"caml_atomic_cas_field"
+-               ~arity:4 ~alloc:false)
+-            args dbg
++          Cop(Cextcall("caml_atomic_cas_field", typ_val, [], false),
++              List.map (transl env) args, dbg)
+       | (Pduparray (kind, _), [Uprim (Pmakearray (kind', _), args, _dbg)]) ->
+           (* We arrive here in two cases:
+              1. When using Closure, all the time.
+@@ -580,7 +587,7 @@ let rec transl env e =
+       | ((Pfield_computed|Psequand
+          | Prunstack | Pperform | Presume | Preperform
+          | Pdls_get
+-         | Patomic_load | Patomic_fetch_add
++         | Patomic_load | Patomic_fetch_add | Patomic_exchange
+          | Psequor | Pnot | Pnegint | Paddint | Psubint
+          | Pmulint | Pandint | Porint | Pxorint | Plslint
+          | Plsrint | Pasrint | Pintoffloat | Pfloatofint
+@@ -1174,6 +1181,17 @@ and transl_prim_3 env p arg1 arg2 arg3 dbg =
+            transl env arg1; transl env arg2; transl env arg3],
+            dbg)
+ 
++  | Patomic_exchange when native_atomics ->
++      (* Only built for immediate values, so the write barrier is a no-op and
++         the swap instruction is the whole job. *)
++      Cop(Catomic_exchange,
++          [field_address_computed (transl env arg1) (transl env arg2) dbg;
++           transl env arg3], dbg)
++
++  | Patomic_exchange ->
++      Cop(Cextcall("caml_atomic_exchange_field", typ_val, [], false),
++          [transl env arg1; transl env arg2; transl env arg3], dbg)
++
+   | Patomic_fetch_add ->
+       let ptr = transl env arg1 in
+       let ofs = transl env arg2 in
+@@ -1209,7 +1227,7 @@ and transl_prim_3 env p arg1 arg2 arg3 dbg =
+   | Pxorbint _ | Plslbint _ | Plsrbint _ | Pasrbint _ | Pbintcomp (_, _)
+   | Pbigarrayref (_, _, _, _) | Pbigarrayset (_, _, _, _) | Pbigarraydim _
+   | Pstring_load _ | Pbytes_load _ | Pbigstring_load _ | Pbbswap _ | Ppoll
+-  | Patomic_exchange | Patomic_cas | Pmakelazyblock _
++  | Patomic_cas | Pmakelazyblock _
+     ->
+       fatal_errorf "Cmmgen.transl_prim_3: %a"
+         Printclambda_primitives.primitive p
+diff --git a/asmcomp/interf.ml b/asmcomp/interf.ml
+index 5894a4575f..72bea95cf1 100644
+--- a/asmcomp/interf.ml
++++ b/asmcomp/interf.ml
+@@ -92,6 +92,21 @@ let build_graph fundecl =
+         interf i.next
+     | Iop(Itailcall_ind) -> ()
+     | Iop(Itailcall_imm _) -> ()
++    | Iop(Iatomic_exchange) ->
++        (* result must differ from address and new value (LL/SC loop) *)
++        add_interf i.res.(0) i.arg.(0);
++        add_interf i.res.(0) i.arg.(1);
++        add_interf_set i.res i.live;
++        add_interf_self i.res;
++        interf i.next
++    | Iop(Iatomic_cas) ->
++        (* result must differ from address and both compared values *)
++        add_interf i.res.(0) i.arg.(0);
++        add_interf i.res.(0) i.arg.(1);
++        add_interf i.res.(0) i.arg.(2);
++        add_interf_set i.res i.live;
++        add_interf_self i.res;
++        interf i.next
+     | Iop(Iatomic_fetch_add) ->
+         (* result must differ from address and increment (LL/SC loop) *)
+         add_interf i.res.(0) i.arg.(0);
+diff --git a/asmcomp/mach.ml b/asmcomp/mach.ml
+index c7b14e1734..46b40fad3d 100644
+--- a/asmcomp/mach.ml
++++ b/asmcomp/mach.ml
+@@ -58,6 +58,8 @@ type operation =
+                is_atomic : bool }
+   | Istore of Cmm.memory_chunk * Arch.addressing_mode * bool
+   | Iatomic_fetch_add
++  | Iatomic_exchange
++  | Iatomic_cas
+   | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo; }
+   | Iintop of integer_operation
+   | Iintop_imm of integer_operation * int
+@@ -154,7 +156,8 @@ let rec instr_iter f i =
+ 
+ let operation_is_pure = function
+   | Icall_ind | Icall_imm _ | Itailcall_ind | Itailcall_imm _
+-  | Iextcall _ | Istackoffset _ | Istore _ | Iatomic_fetch_add | Ialloc _
++  | Iextcall _ | Istackoffset _ | Istore _ | Ialloc _
++  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_cas
+   | Ipoll _ | Idls_get
+   | Iintop(Icheckbound) | Iintop_imm(Icheckbound, _) | Iopaque -> false
+   | Ispecific sop -> Arch.operation_is_pure sop
+diff --git a/asmcomp/mach.mli b/asmcomp/mach.mli
+index 9aa38f68ef..efccc2c011 100644
+--- a/asmcomp/mach.mli
++++ b/asmcomp/mach.mli
+@@ -59,6 +59,8 @@ type operation =
+   | Istore of Cmm.memory_chunk * Arch.addressing_mode * bool
+                                  (* false = initialization, true = assignment *)
+   | Iatomic_fetch_add
++  | Iatomic_exchange
++  | Iatomic_cas
+   | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo; }
+   | Iintop of integer_operation
+   | Iintop_imm of integer_operation * int
+diff --git a/asmcomp/polling.ml b/asmcomp/polling.ml
+index 94422fb092..a551fe812a 100644
+--- a/asmcomp/polling.ml
++++ b/asmcomp/polling.ml
+@@ -250,7 +250,8 @@ let find_poll_alloc_or_calls instr =
+       | Iop(Iextcall { alloc = true }) -> Some (External_call, i.dbg)
+       | Iop(Imove | Ispill | Ireload | Iconst_int _ | Iconst_float _ |
+             Iconst_symbol _ | Iextcall { alloc = false } | Istackoffset _ |
+-            Iload _ | Istore _ | Iatomic_fetch_add | Iintop _ | Iintop_imm _ |
++            Iload _ | Istore _ | Iatomic_fetch_add |
++            Iatomic_exchange | Iatomic_cas | Iintop _ | Iintop_imm _ |
+             Ifloatofint | Iintoffloat | Inegf | Iabsf | Iaddf | Isubf | Imulf |
+             Idivf | Iopaque | Ispecific _ | Idls_get | Icompf _ | Ireturn_addr)
+             -> None
+diff --git a/asmcomp/power/emit.mlp b/asmcomp/power/emit.mlp
+index 92037d496a..ea768c255e 100644
+--- a/asmcomp/power/emit.mlp
++++ b/asmcomp/power/emit.mlp
+@@ -476,6 +476,8 @@ module BR = Branch_relaxation.Make (struct
+     | Lop(Ispecific _) -> 1
+     | Lop(Idls_get) -> 1
+     | Lop(Iatomic_fetch_add) -> 7
++    | Lop(Iatomic_exchange) -> 6
++    | Lop(Iatomic_cas) -> 11
+     | Lop(Ireturn_addr) -> 1
+     | Lreloadretaddr -> 2
+     | Lreturn -> 2
+@@ -847,6 +849,38 @@ let emit_instr env i =
+     | Lop (Idls_get) ->
+         let offset = Domainstate.(idx_of_field Domain_dls_root) * 8 in
+         `	ld	{emit_reg i.res.(0)}, {emit_int offset}(30)\n`
++    | Lop (Iatomic_exchange) ->
++        (* Same fencing as fetch-and-add below, minus the arithmetic. *)
++        let lbl = new_label() in
++        `	sync\n`;
++        `{emit_label lbl}:\n`;
++        `	ldarx	{emit_reg i.res.(0)}, 0, {emit_reg i.arg.(0)}\n`;
++        `	stdcx.	{emit_reg i.arg.(1)}, 0, {emit_reg i.arg.(0)}\n`;
++        `	bne-	{emit_label lbl}\n`;
++        `	isync\n`;
++        `	lwsync\n`
++    | Lop (Iatomic_cas) ->
++        (* The compare-and-swap primitive from the Programming Environments
++           Manual D.3, with r0 holding the loaded value. Leaving the
++           reservation behind on the failure path is what that example does.
++           isync and lwsync as for fetch-and-add, see #10995. *)
++        let lbl = new_label() in
++        let lbl_fail = new_label() in
++        let lbl_done = new_label() in
++        `	sync\n`;
++        `{emit_label lbl}:\n`;
++        `	ldarx	0, 0, {emit_reg i.arg.(0)}\n`;
++        `	cmpd	0, {emit_reg i.arg.(1)}\n`;
++        `	bne-	{emit_label lbl_fail}\n`;
++        `	stdcx.	{emit_reg i.arg.(2)}, 0, {emit_reg i.arg.(0)}\n`;
++        `	bne-	{emit_label lbl}\n`;
++        `	li	{emit_reg i.res.(0)}, 1\n`;
++        `	b	{emit_label lbl_done}\n`;
++        `{emit_label lbl_fail}:\n`;
++        `	li	{emit_reg i.res.(0)}, 0\n`;
++        `{emit_label lbl_done}:\n`;
++        `	isync\n`;
++        `	lwsync\n`
+     | Lop (Iatomic_fetch_add) ->
+         (* trailing lwsync is the release fence, #10995 *)
+         let lbl = new_label() in
+diff --git a/asmcomp/printcmm.ml b/asmcomp/printcmm.ml
+index 8227842d6c..ab083417fc 100644
+--- a/asmcomp/printcmm.ml
++++ b/asmcomp/printcmm.ml
+@@ -165,6 +165,8 @@ let operation d = function
+   | Ccheckbound -> "checkbound" ^ location d
+   | Copaque -> "opaque"
+   | Catomic_fetch_add -> "atomic_fetch_add"
++  | Catomic_exchange -> "atomic_exchange"
++  | Catomic_cas -> "atomic_cas"
+   | Cdls_get -> "dls_get"
+   | Cpoll -> "poll"
+ 
+diff --git a/asmcomp/printmach.ml b/asmcomp/printmach.ml
+index 78e227b60b..3a85f0805a 100644
+--- a/asmcomp/printmach.ml
++++ b/asmcomp/printmach.ml
+@@ -141,6 +141,10 @@ let operation op arg ppf res =
+        (if is_assign then "(assign)" else "(init)")
+   | Iatomic_fetch_add ->
+       fprintf ppf "atomic_fetch_add [%a] %a" reg arg.(0) reg arg.(1)
++  | Iatomic_exchange ->
++      fprintf ppf "atomic_exchange [%a] %a" reg arg.(0) reg arg.(1)
++  | Iatomic_cas ->
++      fprintf ppf "atomic_cas [%a] %a %a" reg arg.(0) reg arg.(1) reg arg.(2)
+   | Ialloc { bytes = n; } ->
+     fprintf ppf "alloc %i" n;
+   | Iintop(op) -> fprintf ppf "%a%s%a" reg arg.(0) (intop op) reg arg.(1)
+diff --git a/asmcomp/riscv/emit.mlp b/asmcomp/riscv/emit.mlp
+index 802ef5a635..bbc4d8e059 100644
+--- a/asmcomp/riscv/emit.mlp
++++ b/asmcomp/riscv/emit.mlp
+@@ -500,6 +500,29 @@ let emit_instr env i =
+   | Lop (Idls_get) ->
+       let ofs = Domainstate.(idx_of_field Domain_dls_root) * 8 in
+       `	ld	{emit_reg i.res.(0)}, {emit_int ofs}({emit_reg reg_domain_state_ptr})\n`
++  | Lop (Iatomic_exchange) ->
++      (* amoswap.d.aqrl carries both orderings, same as amoadd below. *)
++      `	amoswap.d.aqrl	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, ({emit_reg i.arg.(0)})\n`
++  | Lop (Iatomic_cas) ->
++      (* The canonical sequence from the ISA manual, section 14.3. res.(0)
++         carries the loaded value, then the sc status, then the result, which
++         keeps the loop inside the constrained-LR/SC limits: no loads, stores
++         or backward branches between the lr and the sc.
++         aqrl on the lr and rl on the sc is the seq_cst mapping. The manual
++         warns against rl on an lr without aq, and aq on an sc without rl. *)
++      let lbl = new_label() in
++      let lbl_fail = new_label() in
++      let lbl_done = new_label() in
++      `{emit_label lbl}:\n`;
++      `	lr.d.aqrl	{emit_reg i.res.(0)}, ({emit_reg i.arg.(0)})\n`;
++      `	bne	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, {emit_label lbl_fail}\n`;
++      `	sc.d.rl	{emit_reg i.res.(0)}, {emit_reg i.arg.(2)}, ({emit_reg i.arg.(0)})\n`;
++      `	bnez	{emit_reg i.res.(0)}, {emit_label lbl}\n`;
++      `	li	{emit_reg i.res.(0)}, 1\n`;
++      `	j	{emit_label lbl_done}\n`;
++      `{emit_label lbl_fail}:\n`;
++      `	li	{emit_reg i.res.(0)}, 0\n`;
++      `{emit_label lbl_done}:\n`
+   | Lop (Iatomic_fetch_add) ->
+       (* amoadd.d.aqrl carries both acquire and release ordering, so no
+          trailing fence is needed. *)
+diff --git a/asmcomp/s390x/emit.mlp b/asmcomp/s390x/emit.mlp
+index 0e37e31371..c244192f8b 100644
+--- a/asmcomp/s390x/emit.mlp
++++ b/asmcomp/s390x/emit.mlp
+@@ -424,6 +424,9 @@ let emit_instr env i =
+           | Double -> "stdy" in
+         emit_load_store storeinstr addr i.arg 1 i.arg.(0)
+ 
++    | Lop(Iatomic_exchange | Iatomic_cas) ->
++        (* cmmgen keeps the C call on s390x, so selection never builds these. *)
++        Misc.fatal_error "native atomic exchange/cas: s390x not implemented"
+     | Lop(Iatomic_fetch_add) ->
+         `	laag	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, 0({emit_reg i.arg.(0)})\n`
+ 
+diff --git a/asmcomp/schedgen.ml b/asmcomp/schedgen.ml
+index 7d4175f408..6123b0bbb7 100644
+--- a/asmcomp/schedgen.ml
++++ b/asmcomp/schedgen.ml
+@@ -190,7 +190,8 @@ method private instr_in_basic_block instr try_nesting =
+ 
+ method is_store = function
+     Istore(_, _, _) -> true
+-  | Iatomic_fetch_add -> true  (* atomic read-modify-write *)
++  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_cas ->
++      true  (* atomic read-modify-write *)
+   | Iload {is_atomic = true} -> true
+   | _ -> false
+ 
+diff --git a/asmcomp/selectgen.ml b/asmcomp/selectgen.ml
+index 967ce4ce4b..3760bb1053 100644
+--- a/asmcomp/selectgen.ml
++++ b/asmcomp/selectgen.ml
+@@ -87,7 +87,8 @@ let oper_result_type = function
+   | Craise _ -> typ_void
+   | Ccheckbound -> typ_void
+   | Copaque -> typ_val
+-  | Catomic_fetch_add -> typ_val
++  | Catomic_fetch_add | Catomic_exchange -> typ_val
++  | Catomic_cas -> typ_int
+   | Cpoll -> typ_void
+ 
+ (* Infer the size in bytes of the result of an expression whose evaluation
+@@ -328,7 +329,7 @@ method is_simple_expr = function
+       begin match op with
+         (* The following may have side effects *)
+       | Capply _ | Cextcall _ | Calloc | Cstore _ | Craise _ | Copaque
+-      | Catomic_fetch_add | Cpoll -> false
++      | Catomic_fetch_add | Catomic_exchange | Catomic_cas | Cpoll -> false
+         (* The remaining operations are simple if their args are *)
+       | Cload _ | Caddi | Csubi | Cmuli | Cmulhi | Cdivi | Cmodi | Cand | Cor
+       | Cxor | Clsl | Clsr | Casr | Ccmpi _ | Caddv | Cadda | Ccmpa _ | Cnegf
+@@ -370,6 +371,7 @@ method effects_of exp =
+     let from_op =
+       match op with
+       | Capply _ | Cextcall _ | Copaque | Catomic_fetch_add
++      | Catomic_exchange | Catomic_cas
+       | Cpoll -> EC.arbitrary
+       | Calloc -> EC.none
+       | Cstore _ -> EC.effect_only Effect.Arbitrary
+@@ -438,6 +440,8 @@ method select_operation op args _dbg =
+         (* Inversion addr/datum in Istore *)
+       end
+   | (Catomic_fetch_add, _) -> Iatomic_fetch_add, args
++  | (Catomic_exchange, _) -> Iatomic_exchange, args
++  | (Catomic_cas, _) -> Iatomic_cas, args
+   | (Cdls_get, _) -> Idls_get, args
+   | (Cpoll, _) -> (Ipoll { return_label = None }), args
+   | (Calloc, _) -> (Ialloc {bytes = 0; dbginfo = []}), args
+diff --git a/asmcomp/thread_sanitizer.ml b/asmcomp/thread_sanitizer.ml
+index c3059fcf58..a86111597f 100644
+--- a/asmcomp/thread_sanitizer.ml
++++ b/asmcomp/thread_sanitizer.ml
+@@ -150,7 +150,7 @@ let wrap_entry_exit expr =
+             | Caddf | Csubf | Cmulf | Cdivf | Cfloatofint | Cintoffloat
+             | Ccheckbound | Copaque | Cdls_get | Cpoll | Capply _ | Cextcall _
+             | Cload _ | Cstore _ | Ccmpi _ | Ccmpa _ | Ccmpf _ | Craise _
+-            | Catomic_fetch_add ),
++            | Catomic_fetch_add | Catomic_exchange | Catomic_cas ),
+             _,
+             _ )
+       | Cconst_int (_, _)
+@@ -287,6 +287,10 @@ let instrument body =
+     | Cop (Catomic_fetch_add, _, _) ->
+       invalid_arg
+         "instrument: wrong number of arguments for operation Catomic_fetch_add"
++    | Cop ((Catomic_exchange | Catomic_cas), _, _) ->
++      (* cmmgen keeps the runtime call under TSan, which carries its own
++         instrumentation, so these never reach here. *)
++      invalid_arg "instrument: native atomic exchange/cas under TSan"
+     | Cop
+         ( (( Capply _ | Caddi | Calloc | Csubi | Cmuli | Cmulhi | Cdivi | Cmodi
+            | Cand | Cor | Cxor | Clsl | Clsr | Casr | Caddv | Cadda | Cnegf
+diff --git a/asmcomp/x86_ast.mli b/asmcomp/x86_ast.mli
+index f24ac099fb..f133235900 100644
+--- a/asmcomp/x86_ast.mli
++++ b/asmcomp/x86_ast.mli
+@@ -114,6 +114,8 @@ type instruction =
+   | CDQ
+   | CMOV of condition * arg * arg
+   | CMP of arg * arg
++  | CMPXCHG of arg * arg
++  | LOCK_CMPXCHG of arg * arg
+   | CMPSD of float_condition * arg * arg
+   | COMISD of arg * arg
+   | CQO
+diff --git a/asmcomp/x86_dsl.ml b/asmcomp/x86_dsl.ml
+index 642d81c414..59dca7f625 100644
+--- a/asmcomp/x86_dsl.ml
++++ b/asmcomp/x86_dsl.ml
+@@ -121,6 +121,8 @@ module I = struct
+   let call x = emit (CALL x)
+   let cdq () = emit CDQ
+   let cmp x y = emit (CMP (x, y))
++  let cmpxchg x y = emit (CMPXCHG (x, y))
++  let lock_cmpxchg x y = emit (LOCK_CMPXCHG (x, y))
+   let cmpsd cond x y = emit (CMPSD (cond, x, y))
+   let comisd x y = emit (COMISD (x, y))
+   let cqo () = emit CQO
+diff --git a/asmcomp/x86_dsl.mli b/asmcomp/x86_dsl.mli
+index 1fe10bfb4e..0dc4b1d220 100644
+--- a/asmcomp/x86_dsl.mli
++++ b/asmcomp/x86_dsl.mli
+@@ -114,6 +114,8 @@ module I : sig
+   val call: arg -> unit
+   val cdq: unit -> unit
+   val cmp: arg -> arg -> unit
++  val cmpxchg: arg -> arg -> unit
++  val lock_cmpxchg: arg -> arg -> unit
+   val cmpsd : float_condition -> arg -> arg -> unit
+   val comisd: arg -> arg -> unit
+   val cqo: unit -> unit
+diff --git a/asmcomp/x86_gas.ml b/asmcomp/x86_gas.ml
+index 90614be460..5053dcd2ac 100644
+--- a/asmcomp/x86_gas.ml
++++ b/asmcomp/x86_gas.ml
+@@ -124,6 +124,8 @@ let print_instr b = function
+   | CDQ -> i0 b "cltd"
+   | CMOV (c, arg1, arg2) -> i2 b ("cmov" ^ string_of_condition c) arg1 arg2
+   | CMP (arg1, arg2) -> i2_s b "cmp" arg1 arg2
++  | CMPXCHG (arg1, arg2) -> i2_s b "cmpxchg" arg1 arg2
++  | LOCK_CMPXCHG (arg1, arg2) -> i2_s b "lock cmpxchg" arg1 arg2
+   | CMPSD (c, arg1, arg2) ->
+       i2 b ("cmp" ^ string_of_float_condition c ^ "sd") arg1 arg2
+   | COMISD (arg1, arg2) -> i2 b "comisd" arg1 arg2
+diff --git a/asmcomp/x86_masm.ml b/asmcomp/x86_masm.ml
+index c81a2fbaf1..796d833f22 100644
+--- a/asmcomp/x86_masm.ml
++++ b/asmcomp/x86_masm.ml
+@@ -124,6 +124,8 @@ let print_instr b = function
+   | CDQ -> i0 b "cdq"
+   | CMOV (c, arg1, arg2) -> i2 b ("cmov" ^ string_of_condition c) arg1 arg2
+   | CMP (arg1, arg2) -> i2 b "cmp" arg1 arg2
++  | CMPXCHG (arg1, arg2) -> i2 b "cmpxchg" arg1 arg2
++  | LOCK_CMPXCHG (arg1, arg2) -> i2 b "lock cmpxchg" arg1 arg2
+   | CMPSD (c, arg1, arg2) ->
+       i2 b ("cmp" ^ string_of_float_condition c ^ "sd") arg1 arg2
+   | COMISD (arg1, arg2) -> i2 b "comisd" arg1 arg2
+-- 
+2.51.0.windows.2
+

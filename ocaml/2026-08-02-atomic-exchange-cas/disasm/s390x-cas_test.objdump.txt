@@ -1,0 +1,376 @@
+
+cas_test.o:     file format elf64-s390
+
+
+Disassembly of section .text:
+
+0000000000000000 <camlCas_test.check_279>:
+   0:	e3 10 fe b8 ff 71 	lay	%r1,-328(%r15)
+   6:	e3 10 a0 28 00 21 	clg	%r1,40(%r10)
+   c:	c0 44 00 00 00 39 	jgl	7e <camlCas_test.check_279+0x7e>
+  12:	e3 f0 ff f0 ff 71 	lay	%r15,-16(%r15)
+  18:	e3 e0 f0 08 00 24 	stg	%r14,8(%r15)
+  1e:	c2 3c 00 00 00 01 	cgfi	%r3,1
+  24:	c0 84 00 00 00 0b 	jge	3a <camlCas_test.check_279+0x3a>
+  2a:	a7 29 00 01       	lghi	%r2,1
+  2e:	e3 e0 f0 08 00 04 	lg	%r14,8(%r15)
+  34:	41 f0 f0 10       	la	%r15,16(%r15)
+  38:	07 fe             	br	%r14
+  3a:	e3 20 f0 00 00 24 	stg	%r2,0(%r15)
+  40:	c4 38 00 00 00 00 	lgrl	%r3,40 <camlCas_test.check_279+0x40>
+  46:	c4 68 00 00 00 00 	lgrl	%r6,46 <camlCas_test.check_279+0x46>
+  4c:	e3 20 61 30 00 04 	lg	%r2,304(%r6)
+  52:	c0 e5 00 00 00 00 	brasl	%r14,52 <camlCas_test.check_279+0x52>
+  58:	b9 04 00 32       	lgr	%r3,%r2
+  5c:	e3 90 30 00 00 04 	lg	%r9,0(%r3)
+  62:	e3 20 f0 00 00 04 	lg	%r2,0(%r15)
+  68:	0d e9             	basr	%r14,%r9
+  6a:	a7 29 00 03       	lghi	%r2,3
+  6e:	e3 e0 f0 08 00 04 	lg	%r14,8(%r15)
+  74:	41 f0 f0 10       	la	%r15,16(%r15)
+  78:	c0 f4 00 00 00 00 	jg	78 <camlCas_test.check_279+0x78>
+  7e:	e3 f0 ff f8 ff 71 	lay	%r15,-8(%r15)
+  84:	e3 e0 f0 00 00 24 	stg	%r14,0(%r15)
+  8a:	c0 c1 00 00 00 22 	lgfi	%r12,34
+  90:	c4 18 00 00 00 00 	lgrl	%r1,90 <camlCas_test.check_279+0x90>
+  96:	0d e1             	basr	%r14,%r1
+  98:	e3 e0 f0 00 00 04 	lg	%r14,0(%r15)
+  9e:	41 f0 f0 08       	la	%r15,8(%r15)
+  a2:	c0 f4 ff ff ff b8 	jg	12 <camlCas_test.check_279+0x12>
+
+00000000000000a8 <camlCas_test.entry>:
+  a8:	e3 10 fe b8 ff 71 	lay	%r1,-328(%r15)
+  ae:	e3 10 a0 28 00 21 	clg	%r1,40(%r10)
+  b4:	c0 44 00 00 03 1e 	jgl	6f0 <camlCas_test.entry+0x648>
+  ba:	e3 f0 ff f0 ff 71 	lay	%r15,-16(%r15)
+  c0:	e3 e0 f0 08 00 24 	stg	%r14,8(%r15)
+  c6:	c4 38 00 00 00 00 	lgrl	%r3,c6 <camlCas_test.entry+0x1e>
+  cc:	c4 28 00 00 00 00 	lgrl	%r2,cc <camlCas_test.entry+0x24>
+  d2:	b9 04 00 cf       	lgr	%r12,%r15
+  d6:	e3 f0 a0 40 00 04 	lg	%r15,64(%r10)
+  dc:	c0 e5 00 00 00 00 	brasl	%r14,dc <camlCas_test.entry+0x34>
+  e2:	b9 04 00 fc       	lgr	%r15,%r12
+  e6:	c4 18 00 00 00 00 	lgrl	%r1,e6 <camlCas_test.entry+0x3e>
+  ec:	0d e1             	basr	%r14,%r1
+  ee:	41 50 b0 08       	la	%r5,8(%r11)
+  f2:	e3 50 f0 00 00 24 	stg	%r5,0(%r15)
+  f8:	a7 69 04 00       	lghi	%r6,1024
+  fc:	e3 60 5f f8 ff 24 	stg	%r6,-8(%r5)
+ 102:	a7 79 00 15       	lghi	%r7,21
+ 106:	e3 70 50 00 00 24 	stg	%r7,0(%r5)
+ 10c:	a7 89 00 55       	lghi	%r8,85
+ 110:	a7 99 00 c7       	lghi	%r9,199
+ 114:	b9 04 00 c9       	lgr	%r12,%r9
+ 118:	eb c8 50 00 00 30 	csg	%r12,%r8,0(%r5)
+ 11e:	a7 c9 00 01       	lghi	%r12,1
+ 122:	a7 84 00 04       	je	12a <camlCas_test.entry+0x82>
+ 126:	a7 c9 00 00       	lghi	%r12,0
+ 12a:	eb 2c 00 01 00 0d 	sllg	%r2,%r12,1
+ 130:	41 30 20 01       	la	%r3,1(%r2)
+ 134:	c2 3c 00 00 00 01 	cgfi	%r3,1
+ 13a:	a7 49 00 01       	lghi	%r4,1
+ 13e:	a7 84 00 04       	je	146 <camlCas_test.entry+0x9e>
+ 142:	a7 49 00 00       	lghi	%r4,0
+ 146:	eb 54 00 01 00 0d 	sllg	%r5,%r4,1
+ 14c:	41 30 50 01       	la	%r3,1(%r5)
+ 150:	c4 28 00 00 00 00 	lgrl	%r2,150 <camlCas_test.entry+0xa8>
+ 156:	c0 e5 00 00 00 00 	brasl	%r14,156 <camlCas_test.entry+0xae>
+ 15c:	e3 30 f0 00 00 04 	lg	%r3,0(%r15)
+ 162:	e3 80 30 00 00 04 	lg	%r8,0(%r3)
+ 168:	c2 8c 00 00 00 15 	cgfi	%r8,21
+ 16e:	a7 99 00 01       	lghi	%r9,1
+ 172:	a7 84 00 04       	je	17a <camlCas_test.entry+0xd2>
+ 176:	a7 99 00 00       	lghi	%r9,0
+ 17a:	eb c9 00 01 00 0d 	sllg	%r12,%r9,1
+ 180:	41 30 c0 01       	la	%r3,1(%r12)
+ 184:	c4 28 00 00 00 00 	lgrl	%r2,184 <camlCas_test.entry+0xdc>
+ 18a:	c0 e5 00 00 00 00 	brasl	%r14,18a <camlCas_test.entry+0xe2>
+ 190:	a7 49 00 55       	lghi	%r4,85
+ 194:	a7 59 00 15       	lghi	%r5,21
+ 198:	e3 70 f0 00 00 04 	lg	%r7,0(%r15)
+ 19e:	b9 04 00 65       	lgr	%r6,%r5
+ 1a2:	eb 64 70 00 00 30 	csg	%r6,%r4,0(%r7)
+ 1a8:	a7 69 00 01       	lghi	%r6,1
+ 1ac:	a7 84 00 04       	je	1b4 <camlCas_test.entry+0x10c>
+ 1b0:	a7 69 00 00       	lghi	%r6,0
+ 1b4:	eb 76 00 01 00 0d 	sllg	%r7,%r6,1
+ 1ba:	41 80 70 01       	la	%r8,1(%r7)
+ 1be:	c2 8c 00 00 00 03 	cgfi	%r8,3
+ 1c4:	a7 99 00 01       	lghi	%r9,1
+ 1c8:	a7 84 00 04       	je	1d0 <camlCas_test.entry+0x128>
+ 1cc:	a7 99 00 00       	lghi	%r9,0
+ 1d0:	eb c9 00 01 00 0d 	sllg	%r12,%r9,1
+ 1d6:	41 30 c0 01       	la	%r3,1(%r12)
+ 1da:	c4 28 00 00 00 00 	lgrl	%r2,1da <camlCas_test.entry+0x132>
+ 1e0:	c0 e5 00 00 00 00 	brasl	%r14,1e0 <camlCas_test.entry+0x138>
+ 1e6:	e3 50 f0 00 00 04 	lg	%r5,0(%r15)
+ 1ec:	e3 40 50 00 00 04 	lg	%r4,0(%r5)
+ 1f2:	c2 4c 00 00 00 55 	cgfi	%r4,85
+ 1f8:	a7 59 00 01       	lghi	%r5,1
+ 1fc:	a7 84 00 04       	je	204 <camlCas_test.entry+0x15c>
+ 200:	a7 59 00 00       	lghi	%r5,0
+ 204:	eb 65 00 01 00 0d 	sllg	%r6,%r5,1
+ 20a:	41 30 60 01       	la	%r3,1(%r6)
+ 20e:	c4 28 00 00 00 00 	lgrl	%r2,20e <camlCas_test.entry+0x166>
+ 214:	c0 e5 00 00 00 00 	brasl	%r14,214 <camlCas_test.entry+0x16c>
+ 21a:	a7 99 ff f3       	lghi	%r9,-13
+ 21e:	a7 c9 00 55       	lghi	%r12,85
+ 222:	e3 60 f0 00 00 04 	lg	%r6,0(%r15)
+ 228:	b9 04 00 2c       	lgr	%r2,%r12
+ 22c:	eb 29 60 00 00 30 	csg	%r2,%r9,0(%r6)
+ 232:	a7 29 00 01       	lghi	%r2,1
+ 236:	a7 84 00 04       	je	23e <camlCas_test.entry+0x196>
+ 23a:	a7 29 00 00       	lghi	%r2,0
+ 23e:	eb 32 00 01 00 0d 	sllg	%r3,%r2,1
+ 244:	41 40 30 01       	la	%r4,1(%r3)
+ 248:	c2 4c 00 00 00 03 	cgfi	%r4,3
+ 24e:	a7 59 00 01       	lghi	%r5,1
+ 252:	a7 84 00 04       	je	25a <camlCas_test.entry+0x1b2>
+ 256:	a7 59 00 00       	lghi	%r5,0
+ 25a:	eb 65 00 01 00 0d 	sllg	%r6,%r5,1
+ 260:	41 30 60 01       	la	%r3,1(%r6)
+ 264:	c4 28 00 00 00 00 	lgrl	%r2,264 <camlCas_test.entry+0x1bc>
+ 26a:	c0 e5 00 00 00 00 	brasl	%r14,26a <camlCas_test.entry+0x1c2>
+ 270:	e3 70 f0 00 00 04 	lg	%r7,0(%r15)
+ 276:	e3 90 70 00 00 04 	lg	%r9,0(%r7)
+ 27c:	c2 9c ff ff ff f3 	cgfi	%r9,-13
+ 282:	a7 c9 00 01       	lghi	%r12,1
+ 286:	a7 84 00 04       	je	28e <camlCas_test.entry+0x1e6>
+ 28a:	a7 c9 00 00       	lghi	%r12,0
+ 28e:	eb 2c 00 01 00 0d 	sllg	%r2,%r12,1
+ 294:	41 30 20 01       	la	%r3,1(%r2)
+ 298:	c4 28 00 00 00 00 	lgrl	%r2,298 <camlCas_test.entry+0x1f0>
+ 29e:	c0 e5 00 00 00 00 	brasl	%r14,29e <camlCas_test.entry+0x1f6>
+ 2a4:	a7 59 00 01       	lghi	%r5,1
+ 2a8:	a7 69 ff f3       	lghi	%r6,-13
+ 2ac:	e3 80 f0 00 00 04 	lg	%r8,0(%r15)
+ 2b2:	b9 04 00 76       	lgr	%r7,%r6
+ 2b6:	eb 75 80 00 00 30 	csg	%r7,%r5,0(%r8)
+ 2bc:	a7 79 00 01       	lghi	%r7,1
+ 2c0:	a7 84 00 04       	je	2c8 <camlCas_test.entry+0x220>
+ 2c4:	a7 79 00 00       	lghi	%r7,0
+ 2c8:	eb 87 00 01 00 0d 	sllg	%r8,%r7,1
+ 2ce:	41 90 80 01       	la	%r9,1(%r8)
+ 2d2:	c2 9c 00 00 00 03 	cgfi	%r9,3
+ 2d8:	a7 c9 00 01       	lghi	%r12,1
+ 2dc:	a7 84 00 04       	je	2e4 <camlCas_test.entry+0x23c>
+ 2e0:	a7 c9 00 00       	lghi	%r12,0
+ 2e4:	eb 2c 00 01 00 0d 	sllg	%r2,%r12,1
+ 2ea:	41 30 20 01       	la	%r3,1(%r2)
+ 2ee:	c4 28 00 00 00 00 	lgrl	%r2,2ee <camlCas_test.entry+0x246>
+ 2f4:	c0 e5 00 00 00 00 	brasl	%r14,2f4 <camlCas_test.entry+0x24c>
+ 2fa:	e3 90 f0 00 00 04 	lg	%r9,0(%r15)
+ 300:	e3 50 90 00 00 04 	lg	%r5,0(%r9)
+ 306:	c2 5c 00 00 00 01 	cgfi	%r5,1
+ 30c:	a7 69 00 01       	lghi	%r6,1
+ 310:	a7 84 00 04       	je	318 <camlCas_test.entry+0x270>
+ 314:	a7 69 00 00       	lghi	%r6,0
+ 318:	eb 76 00 01 00 0d 	sllg	%r7,%r6,1
+ 31e:	41 30 70 01       	la	%r3,1(%r7)
+ 322:	c4 28 00 00 00 00 	lgrl	%r2,322 <camlCas_test.entry+0x27a>
+ 328:	c0 e5 00 00 00 00 	brasl	%r14,328 <camlCas_test.entry+0x280>
+ 32e:	a7 c9 00 01       	lghi	%r12,1
+ 332:	a7 29 00 01       	lghi	%r2,1
+ 336:	e3 40 f0 00 00 04 	lg	%r4,0(%r15)
+ 33c:	b9 04 00 32       	lgr	%r3,%r2
+ 340:	eb 3c 40 00 00 30 	csg	%r3,%r12,0(%r4)
+ 346:	a7 39 00 01       	lghi	%r3,1
+ 34a:	a7 84 00 04       	je	352 <camlCas_test.entry+0x2aa>
+ 34e:	a7 39 00 00       	lghi	%r3,0
+ 352:	eb 43 00 01 00 0d 	sllg	%r4,%r3,1
+ 358:	41 50 40 01       	la	%r5,1(%r4)
+ 35c:	c2 5c 00 00 00 03 	cgfi	%r5,3
+ 362:	a7 69 00 01       	lghi	%r6,1
+ 366:	a7 84 00 04       	je	36e <camlCas_test.entry+0x2c6>
+ 36a:	a7 69 00 00       	lghi	%r6,0
+ 36e:	eb 76 00 01 00 0d 	sllg	%r7,%r6,1
+ 374:	41 30 70 01       	la	%r3,1(%r7)
+ 378:	c4 28 00 00 00 00 	lgrl	%r2,378 <camlCas_test.entry+0x2d0>
+ 37e:	c0 e5 00 00 00 00 	brasl	%r14,37e <camlCas_test.entry+0x2d6>
+ 384:	e3 20 f0 00 00 04 	lg	%r2,0(%r15)
+ 38a:	e3 c0 20 00 00 04 	lg	%r12,0(%r2)
+ 390:	c2 cc 00 00 00 01 	cgfi	%r12,1
+ 396:	a7 29 00 01       	lghi	%r2,1
+ 39a:	a7 84 00 04       	je	3a2 <camlCas_test.entry+0x2fa>
+ 39e:	a7 29 00 00       	lghi	%r2,0
+ 3a2:	eb 32 00 01 00 0d 	sllg	%r3,%r2,1
+ 3a8:	41 30 30 01       	la	%r3,1(%r3)
+ 3ac:	c4 28 00 00 00 00 	lgrl	%r2,3ac <camlCas_test.entry+0x304>
+ 3b2:	c0 e5 00 00 00 00 	brasl	%r14,3b2 <camlCas_test.entry+0x30a>
+ 3b8:	a7 69 00 0b       	lghi	%r6,11
+ 3bc:	e3 30 f0 00 00 04 	lg	%r3,0(%r15)
+ 3c2:	e3 70 30 00 00 04 	lg	%r7,0(%r3)
+ 3c8:	eb 76 30 00 00 30 	csg	%r7,%r6,0(%r3)
+ 3ce:	a7 44 ff fd       	jl	3c8 <camlCas_test.entry+0x320>
+ 3d2:	c2 7c 00 00 00 01 	cgfi	%r7,1
+ 3d8:	a7 89 00 01       	lghi	%r8,1
+ 3dc:	a7 84 00 04       	je	3e4 <camlCas_test.entry+0x33c>
+ 3e0:	a7 89 00 00       	lghi	%r8,0
+ 3e4:	eb 98 00 01 00 0d 	sllg	%r9,%r8,1
+ 3ea:	41 30 90 01       	la	%r3,1(%r9)
+ 3ee:	c4 28 00 00 00 00 	lgrl	%r2,3ee <camlCas_test.entry+0x346>
+ 3f4:	c0 e5 00 00 00 00 	brasl	%r14,3f4 <camlCas_test.entry+0x34c>
+ 3fa:	e3 40 f0 00 00 04 	lg	%r4,0(%r15)
+ 400:	e3 30 40 00 00 04 	lg	%r3,0(%r4)
+ 406:	c2 3c 00 00 00 0b 	cgfi	%r3,11
+ 40c:	a7 49 00 01       	lghi	%r4,1
+ 410:	a7 84 00 04       	je	418 <camlCas_test.entry+0x370>
+ 414:	a7 49 00 00       	lghi	%r4,0
+ 418:	eb 54 00 01 00 0d 	sllg	%r5,%r4,1
+ 41e:	41 30 50 01       	la	%r3,1(%r5)
+ 422:	c4 28 00 00 00 00 	lgrl	%r2,422 <camlCas_test.entry+0x37a>
+ 428:	c0 e5 00 00 00 00 	brasl	%r14,428 <camlCas_test.entry+0x380>
+ 42e:	a7 89 ff ff       	lghi	%r8,-1
+ 432:	e3 50 f0 00 00 04 	lg	%r5,0(%r15)
+ 438:	e3 90 50 00 00 04 	lg	%r9,0(%r5)
+ 43e:	eb 98 50 00 00 30 	csg	%r9,%r8,0(%r5)
+ 444:	a7 44 ff fd       	jl	43e <camlCas_test.entry+0x396>
+ 448:	c2 9c 00 00 00 0b 	cgfi	%r9,11
+ 44e:	a7 c9 00 01       	lghi	%r12,1
+ 452:	a7 84 00 04       	je	45a <camlCas_test.entry+0x3b2>
+ 456:	a7 c9 00 00       	lghi	%r12,0
+ 45a:	eb 2c 00 01 00 0d 	sllg	%r2,%r12,1
+ 460:	41 30 20 01       	la	%r3,1(%r2)
+ 464:	c4 28 00 00 00 00 	lgrl	%r2,464 <camlCas_test.entry+0x3bc>
+ 46a:	c0 e5 00 00 00 00 	brasl	%r14,46a <camlCas_test.entry+0x3c2>
+ 470:	e3 60 f0 00 00 04 	lg	%r6,0(%r15)
+ 476:	e3 50 60 00 00 04 	lg	%r5,0(%r6)
+ 47c:	c2 5c ff ff ff ff 	cgfi	%r5,-1
+ 482:	a7 69 00 01       	lghi	%r6,1
+ 486:	a7 84 00 04       	je	48e <camlCas_test.entry+0x3e6>
+ 48a:	a7 69 00 00       	lghi	%r6,0
+ 48e:	eb 76 00 01 00 0d 	sllg	%r7,%r6,1
+ 494:	41 30 70 01       	la	%r3,1(%r7)
+ 498:	c4 28 00 00 00 00 	lgrl	%r2,498 <camlCas_test.entry+0x3f0>
+ 49e:	c0 e5 00 00 00 00 	brasl	%r14,49e <camlCas_test.entry+0x3f6>
+ 4a4:	c4 18 00 00 00 00 	lgrl	%r1,4a4 <camlCas_test.entry+0x3fc>
+ 4aa:	0d e1             	basr	%r14,%r1
+ 4ac:	41 c0 b0 08       	la	%r12,8(%r11)
+ 4b0:	e3 c0 f0 00 00 24 	stg	%r12,0(%r15)
+ 4b6:	a7 29 04 00       	lghi	%r2,1024
+ 4ba:	e3 20 cf f8 ff 24 	stg	%r2,-8(%r12)
+ 4c0:	a7 39 00 03       	lghi	%r3,3
+ 4c4:	e3 30 c0 00 00 24 	stg	%r3,0(%r12)
+ 4ca:	a7 49 00 01       	lghi	%r4,1
+ 4ce:	a7 59 00 03       	lghi	%r5,3
+ 4d2:	b9 04 00 65       	lgr	%r6,%r5
+ 4d6:	eb 64 c0 00 00 30 	csg	%r6,%r4,0(%r12)
+ 4dc:	a7 69 00 01       	lghi	%r6,1
+ 4e0:	a7 84 00 04       	je	4e8 <camlCas_test.entry+0x440>
+ 4e4:	a7 69 00 00       	lghi	%r6,0
+ 4e8:	eb 76 00 01 00 0d 	sllg	%r7,%r6,1
+ 4ee:	41 80 70 01       	la	%r8,1(%r7)
+ 4f2:	c2 8c 00 00 00 03 	cgfi	%r8,3
+ 4f8:	a7 99 00 01       	lghi	%r9,1
+ 4fc:	a7 84 00 04       	je	504 <camlCas_test.entry+0x45c>
+ 500:	a7 99 00 00       	lghi	%r9,0
+ 504:	eb c9 00 01 00 0d 	sllg	%r12,%r9,1
+ 50a:	41 30 c0 01       	la	%r3,1(%r12)
+ 50e:	c4 28 00 00 00 00 	lgrl	%r2,50e <camlCas_test.entry+0x466>
+ 514:	c0 e5 00 00 00 00 	brasl	%r14,514 <camlCas_test.entry+0x46c>
+ 51a:	e3 70 f0 00 00 04 	lg	%r7,0(%r15)
+ 520:	e3 40 70 00 00 04 	lg	%r4,0(%r7)
+ 526:	c2 4c 00 00 00 01 	cgfi	%r4,1
+ 52c:	a7 59 00 01       	lghi	%r5,1
+ 530:	a7 84 00 04       	je	538 <camlCas_test.entry+0x490>
+ 534:	a7 59 00 00       	lghi	%r5,0
+ 538:	eb 65 00 01 00 0d 	sllg	%r6,%r5,1
+ 53e:	41 30 60 01       	la	%r3,1(%r6)
+ 542:	c4 28 00 00 00 00 	lgrl	%r2,542 <camlCas_test.entry+0x49a>
+ 548:	c0 e5 00 00 00 00 	brasl	%r14,548 <camlCas_test.entry+0x4a0>
+ 54e:	a7 99 00 01       	lghi	%r9,1
+ 552:	a7 c9 00 03       	lghi	%r12,3
+ 556:	e3 80 f0 00 00 04 	lg	%r8,0(%r15)
+ 55c:	b9 04 00 2c       	lgr	%r2,%r12
+ 560:	eb 29 80 00 00 30 	csg	%r2,%r9,0(%r8)
+ 566:	a7 29 00 01       	lghi	%r2,1
+ 56a:	a7 84 00 04       	je	572 <camlCas_test.entry+0x4ca>
+ 56e:	a7 29 00 00       	lghi	%r2,0
+ 572:	eb 32 00 01 00 0d 	sllg	%r3,%r2,1
+ 578:	41 40 30 01       	la	%r4,1(%r3)
+ 57c:	c2 4c 00 00 00 01 	cgfi	%r4,1
+ 582:	a7 59 00 01       	lghi	%r5,1
+ 586:	a7 84 00 04       	je	58e <camlCas_test.entry+0x4e6>
+ 58a:	a7 59 00 00       	lghi	%r5,0
+ 58e:	eb 65 00 01 00 0d 	sllg	%r6,%r5,1
+ 594:	41 30 60 01       	la	%r3,1(%r6)
+ 598:	c4 28 00 00 00 00 	lgrl	%r2,598 <camlCas_test.entry+0x4f0>
+ 59e:	c0 e5 00 00 00 00 	brasl	%r14,59e <camlCas_test.entry+0x4f6>
+ 5a4:	c4 18 00 00 00 00 	lgrl	%r1,5a4 <camlCas_test.entry+0x4fc>
+ 5aa:	0d e1             	basr	%r14,%r1
+ 5ac:	41 90 b0 08       	la	%r9,8(%r11)
+ 5b0:	e3 90 f0 00 00 24 	stg	%r9,0(%r15)
+ 5b6:	a7 c9 04 00       	lghi	%r12,1024
+ 5ba:	e3 c0 9f f8 ff 24 	stg	%r12,-8(%r9)
+ 5c0:	a7 29 00 03       	lghi	%r2,3
+ 5c4:	e3 20 90 00 00 24 	stg	%r2,0(%r9)
+ 5ca:	a7 39 00 05       	lghi	%r3,5
+ 5ce:	a7 49 00 03       	lghi	%r4,3
+ 5d2:	b9 04 00 54       	lgr	%r5,%r4
+ 5d6:	eb 53 90 00 00 30 	csg	%r5,%r3,0(%r9)
+ 5dc:	a7 59 00 01       	lghi	%r5,1
+ 5e0:	a7 84 00 04       	je	5e8 <camlCas_test.entry+0x540>
+ 5e4:	a7 59 00 00       	lghi	%r5,0
+ 5e8:	c2 5c 00 00 00 00 	cgfi	%r5,0
+ 5ee:	c0 84 00 00 00 09 	jge	600 <camlCas_test.entry+0x558>
+ 5f4:	c4 28 00 00 00 00 	lgrl	%r2,5f4 <camlCas_test.entry+0x54c>
+ 5fa:	c0 f4 00 00 00 06 	jg	606 <camlCas_test.entry+0x55e>
+ 600:	c4 28 00 00 00 00 	lgrl	%r2,600 <camlCas_test.entry+0x558>
+ 606:	c4 38 00 00 00 00 	lgrl	%r3,606 <camlCas_test.entry+0x55e>
+ 60c:	b9 04 00 cf       	lgr	%r12,%r15
+ 610:	e3 f0 a0 40 00 04 	lg	%r15,64(%r10)
+ 616:	c0 e5 00 00 00 00 	brasl	%r14,616 <camlCas_test.entry+0x56e>
+ 61c:	b9 04 00 fc       	lgr	%r15,%r12
+ 620:	b9 04 00 32       	lgr	%r3,%r2
+ 624:	c4 28 00 00 00 00 	lgrl	%r2,624 <camlCas_test.entry+0x57c>
+ 62a:	c0 e5 00 00 00 00 	brasl	%r14,62a <camlCas_test.entry+0x582>
+ 630:	a7 29 00 01       	lghi	%r2,1
+ 634:	a7 39 00 03       	lghi	%r3,3
+ 638:	c2 3c 00 00 07 d1 	cgfi	%r3,2001
+ 63e:	c0 24 00 00 00 30 	jgh	69e <camlCas_test.entry+0x5f6>
+ 644:	a7 59 00 05       	lghi	%r5,5
+ 648:	a7 69 00 05       	lghi	%r6,5
+ 64c:	e3 90 f0 00 00 04 	lg	%r9,0(%r15)
+ 652:	b9 04 00 76       	lgr	%r7,%r6
+ 656:	eb 75 90 00 00 30 	csg	%r7,%r5,0(%r9)
+ 65c:	a7 79 00 01       	lghi	%r7,1
+ 660:	a7 84 00 04       	je	668 <camlCas_test.entry+0x5c0>
+ 664:	a7 79 00 00       	lghi	%r7,0
+ 668:	c2 7c 00 00 00 00 	cgfi	%r7,0
+ 66e:	c0 84 00 00 00 05 	jge	678 <camlCas_test.entry+0x5d0>
+ 674:	41 20 20 02       	la	%r2,2(%r2)
+ 678:	b9 04 00 c3       	lgr	%r12,%r3
+ 67c:	41 30 30 02       	la	%r3,2(%r3)
+ 680:	c2 cc 00 00 07 d1 	cgfi	%r12,2001
+ 686:	c0 84 00 00 00 0c 	jge	69e <camlCas_test.entry+0x5f6>
+ 68c:	e3 b0 a0 00 00 21 	clg	%r11,0(%r10)
+ 692:	c0 a4 ff ff ff d9 	jghe	644 <camlCas_test.entry+0x59c>
+ 698:	c0 f4 00 00 00 25 	jg	6e2 <camlCas_test.entry+0x63a>
+ 69e:	c2 2c 00 00 07 d1 	cgfi	%r2,2001
+ 6a4:	a7 59 00 01       	lghi	%r5,1
+ 6a8:	a7 84 00 04       	je	6b0 <camlCas_test.entry+0x608>
+ 6ac:	a7 59 00 00       	lghi	%r5,0
+ 6b0:	eb 65 00 01 00 0d 	sllg	%r6,%r5,1
+ 6b6:	41 30 60 01       	la	%r3,1(%r6)
+ 6ba:	c4 28 00 00 00 00 	lgrl	%r2,6ba <camlCas_test.entry+0x612>
+ 6c0:	c0 e5 00 00 00 00 	brasl	%r14,6c0 <camlCas_test.entry+0x618>
+ 6c6:	c4 28 00 00 00 00 	lgrl	%r2,6c6 <camlCas_test.entry+0x61e>
+ 6cc:	c0 e5 00 00 00 00 	brasl	%r14,6cc <camlCas_test.entry+0x624>
+ 6d2:	a7 29 00 01       	lghi	%r2,1
+ 6d6:	e3 e0 f0 08 00 04 	lg	%r14,8(%r15)
+ 6dc:	41 f0 f0 10       	la	%r15,16(%r15)
+ 6e0:	07 fe             	br	%r14
+ 6e2:	c4 18 00 00 00 00 	lgrl	%r1,6e2 <camlCas_test.entry+0x63a>
+ 6e8:	0d e1             	basr	%r14,%r1
+ 6ea:	c0 f4 ff ff ff ad 	jg	644 <camlCas_test.entry+0x59c>
+ 6f0:	e3 f0 ff f8 ff 71 	lay	%r15,-8(%r15)
+ 6f6:	e3 e0 f0 00 00 24 	stg	%r14,0(%r15)
+ 6fc:	c0 c1 00 00 00 22 	lgfi	%r12,34
+ 702:	c4 18 00 00 00 00 	lgrl	%r1,702 <camlCas_test.entry+0x65a>
+ 708:	0d e1             	basr	%r14,%r1
+ 70a:	e3 e0 f0 00 00 04 	lg	%r14,0(%r15)
+ 710:	41 f0 f0 08       	la	%r15,8(%r15)
+ 714:	c0 f4 ff ff fc d3 	jg	ba <camlCas_test.entry+0x12>
+
+000000000000071a <camlCas_test.code_end>:
+ 71a:	00 00 00 00 07 07                                   ......

@@ -1,0 +1,9 @@
+# Local wordlist for tools/check-secrets.sh. Never commit this.
+.secretwords
+
+# build noise
+*.cmi
+*.cmx
+*.cmo
+*.o
+*.a

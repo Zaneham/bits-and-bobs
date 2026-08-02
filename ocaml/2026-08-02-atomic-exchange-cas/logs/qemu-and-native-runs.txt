@@ -1,0 +1,14 @@
+# functional + stress runs under qemu-user
+# cas_test  = single-domain correctness (cas success/fail, negatives, bool, branch on result)
+# cas_par   = 4 domains, 400k cas retries + exchange tag-uniqueness
+
+arm64   cas_test : all ok
+arm64   cas_par  : all ok
+riscv   cas_test : all ok
+riscv   cas_par  : all ok
+power   cas_test : all ok
+power   cas_par  : all ok
+s390x   cas_test : all ok
+s390x   cas_par  : all ok
+amd64   cas_test : all ok
+amd64   cas_par  : all ok

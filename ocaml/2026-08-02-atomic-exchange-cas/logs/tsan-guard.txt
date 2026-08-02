@@ -1,0 +1,9 @@
+# TSan guard check: Config.tsan must keep the C call so thread_sanitizer.ml
+# never sees Catomic_exchange / Catomic_cas.
+
+native atomic instructions emitted : 0
+caml_atomic_*_field calls emitted  : 11
+
+# same file, non-TSan compiler:
+native atomic instructions emitted : 20
+caml_atomic_*_field calls emitted  : 0
