@@ -1,0 +1,45 @@
+arm64, cross-built and run under qemu-aarch64
+=============================================
+
+I don't have an arm64 host here, so I followed the cross-build recipe in
+ocaml/2026-08-02-atomic-exchange-cas/notes/cross-build-recipe.md.
+
+  ./configure --target=aarch64-linux-gnu --disable-ocamldoc
+  make crossopt -j12
+  ./ocamlopt.opt -nostdlib -I ./stdlib -S -o comb_group comb_group.ml
+  qemu-aarch64 -L /usr/aarch64-linux-gnu ./comb_group
+
+Results:
+
+  comb_group: ok
+  comb_boundary: ok
+
+Combined allocations, displacement folded into the add:
+
+  .L143:	add	x1, x27, #88
+  .L178:	add	x1, x27, #120
+  .L449:	add	x1, x27, #64
+  .L652:	add	x1, x27, #8
+
+The boundary group, where the displacement is the largest reachable:
+
+  	ldr	x16, [x28, #0]
+  	sub	x27, x27, #2056
+  	cmp	x27, x16
+  	b.lo	.L137
+  .L136:	add	x2, x27, #2048
+
+Still one instruction. arm64 add takes a 12-bit unsigned immediate, 0-4095,
+so 2048 fits with room to spare.
+
+I think this matters more than the run itself. The arm64 emitter wraps each
+instruction in an assembler assertion checking it against the size the
+branch-relaxation table claims.
+
+  .ifgt (. - .L136) - N
+  .error "Emit.instr_size: instruction length mismatch"
+  .endif
+
+567 of these in comb_group.s alone, and the assembler accepted all of them.
+The patch removes an instruction from the stream, so a stale size entry was
+a live risk; this rules it out for the paths these tests reach.

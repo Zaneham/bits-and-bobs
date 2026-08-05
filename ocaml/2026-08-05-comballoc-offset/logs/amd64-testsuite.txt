@@ -1,0 +1,37 @@
+Full testsuite, amd64
+=====================
+
+  make -j12 tests
+
+on the patched tree, Linux x86-64 under WSL2, tree on a drvfs mount.
+
+  1517 tests passed
+  0 unexpected errors
+  2 tests failed
+
+The two failures are both in tests/lib-unix/unix-socket.
+
+  recvfrom_linux.ml   bytecode => failed (exit code 2)
+                      native   => failed (exit code 2)
+  recvfrom_unix.ml    bytecode => failed (exit code 2)
+                      native   => failed (exit code 2)
+
+Neither is caused by the patch, on two independent grounds.
+
+They fail in bytecode as well as native. The bytecode compiler does not run
+comballoc and never reaches asmcomp at all, so there is no path by which this
+patch could affect that result.
+
+They fail the same way on the parent commit. I ran the same directory against
+a separate build of e65c565a1f, the commit the patch sits on:
+
+  cd testsuite && make one DIR=tests/lib-unix/unix-socket
+
+  recvfrom_linux.ml   bytecode => failed
+                      native   => failed
+  recvfrom_unix.ml    bytecode => failed
+                      native   => failed
+
+Identical. These are a WSL2 socket environment problem and were already there
+before the patch. I have not chased them further, because they are outside
+what this review is about.

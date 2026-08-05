@@ -1,0 +1,451 @@
+From 0c75e1fbfab7ca7e1eaad3a0c24331bcee7853ef Mon Sep 17 00:00:00 2001
+From: Alban Gruin <alban@pa1ch.fr>
+Date: Sat, 16 May 2026 14:03:44 +0200
+Subject: [PATCH] comballoc: emit a single add after a combined allocation
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+With the current backends, an `Ialloc` is compiled into a sequence of
+instructions that ends by adding 8 to the allocator pointer (here, in
+RISC-V):
+
+    # Allocation…
+    addi rp, s10, 8      # Last Ialloc instruction
+
+When combining allocations into a single `Ialloc`, an `Iadd` operation
+is appended to add an offset to the pointer.  Hence, the compiled
+code looks like this:
+
+    # Allocation…
+    addi rp, s10, 8      # Last Ialloc instruction
+    addi rp, rp, offset  # Iadd
+
+This change adds an offset value to the `Ialloc` constructor and removes
+the `Iadd`, resulting in code that code looks like this:
+
+    # Allocation…
+    addi rp, r15, 8 + offset  # Last Ialloc instruction
+
+There is an edge case in RISC-V where it is possible to construct a
+program such that an allocation requires an offset of 2040.  This would
+require adding 2048 to the final pointer, which is not possible with a
+signed 12-bits immediate.  To cover this uncommon case, this addition is
+emitted through `emit_addimm`.
+
+Signed-off-by: Alban Gruin <alban@pa1ch.fr>
+---
+ asmcomp/amd64/emit.mlp             |  6 +++---
+ asmcomp/arm64/arch.ml              |  7 ++++---
+ asmcomp/arm64/arch.mli             |  3 ++-
+ asmcomp/arm64/emit.mlp             | 18 +++++++++---------
+ asmcomp/branch_relaxation.ml       |  4 ++--
+ asmcomp/branch_relaxation_intf.mli |  1 +
+ asmcomp/comballoc.ml               | 10 +++-------
+ asmcomp/mach.ml                    |  2 +-
+ asmcomp/mach.mli                   |  2 +-
+ asmcomp/power/arch.ml              |  6 +++---
+ asmcomp/power/arch.mli             |  2 +-
+ asmcomp/power/emit.mlp             | 18 +++++++++---------
+ asmcomp/printmach.ml               |  4 ++--
+ asmcomp/riscv/emit.mlp             |  6 +++---
+ asmcomp/s390x/emit.mlp             |  6 +++---
+ asmcomp/selectgen.ml               |  5 +++--
+ 16 files changed, 50 insertions(+), 50 deletions(-)
+
+diff --git a/asmcomp/amd64/emit.mlp b/asmcomp/amd64/emit.mlp
+index b1c1c7871a..ff9e47ef2f 100644
+--- a/asmcomp/amd64/emit.mlp
++++ b/asmcomp/amd64/emit.mlp
+@@ -604,7 +604,7 @@ let emit_instr env fallthrough i =
+       | Double ->
+           I.movsd (arg i 0) (addressing addr REAL8 i 1)
+       end
+-  | Lop(Ialloc { bytes = n; dbginfo }) ->
++  | Lop(Ialloc { bytes = n; offset; dbginfo }) ->
+       assert (n <= (Config.max_young_wosize + 1) * Arch.size_addr);
+       if env.f.fun_fast then begin
+         I.sub (int n) r15;
+@@ -616,7 +616,7 @@ let emit_instr env fallthrough i =
+         I.jb (label lbl_call_gc);
+         let lbl_after_alloc = new_label() in
+         def_label lbl_after_alloc;
+-        I.lea (mem64 NONE 8 R15) (res i 0);
++        I.lea (mem64 NONE (8 + offset) R15) (res i 0);
+         env.call_gc_sites <-
+           { gc_lbl = lbl_call_gc;
+             gc_return_lbl = lbl_after_alloc;
+@@ -632,7 +632,7 @@ let emit_instr env fallthrough i =
+         end;
+         let label = record_frame_label env i.live (Dbg_alloc dbginfo) in
+         def_label label;
+-        I.lea (mem64 NONE 8 R15) (res i 0)
++        I.lea (mem64 NONE (8 + offset) R15) (res i 0)
+       end
+   | Lop(Ipoll { return_label }) ->
+       I.cmp (domain_field Domainstate.Domain_young_limit) r15;
+diff --git a/asmcomp/arm64/arch.ml b/asmcomp/arm64/arch.ml
+index 0ba533fc7d..5ec088c056 100644
+--- a/asmcomp/arm64/arch.ml
++++ b/asmcomp/arm64/arch.ml
+@@ -48,7 +48,8 @@ type cmm_label = int
+ 
+ type specific_operation =
+   | Ipoll_far of { return_label: cmm_label option }
+-  | Ialloc_far of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo }
++  | Ialloc_far of { bytes : int; offset : int;
++                    dbginfo : Debuginfo.alloc_dbginfo }
+   | Icheckbound_far
+   | Icheckbound_imm_far of { bound : int; }
+   | Ishiftarith of arith_operation * int
+@@ -109,8 +110,8 @@ let print_specific_operation printreg op ppf arg =
+   match op with
+   | Ipoll_far _ ->
+     fprintf ppf "(far) poll"
+-  | Ialloc_far { bytes; } ->
+-    fprintf ppf "(far) alloc %i" bytes
++  | Ialloc_far { bytes; offset; } ->
++    fprintf ppf "(far) alloc %i %i" bytes offset
+   | Icheckbound_far ->
+     fprintf ppf "%a (far) check > %a" printreg arg.(0) printreg arg.(1)
+   | Icheckbound_imm_far { bound; } ->
+diff --git a/asmcomp/arm64/arch.mli b/asmcomp/arm64/arch.mli
+index ffeda9e539..99d447f38a 100644
+--- a/asmcomp/arm64/arch.mli
++++ b/asmcomp/arm64/arch.mli
+@@ -45,7 +45,8 @@ type cmm_label = int
+ 
+ type specific_operation =
+   | Ipoll_far of { return_label: cmm_label option }
+-  | Ialloc_far of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo }
++  | Ialloc_far of { bytes : int; offset : int;
++                    dbginfo : Debuginfo.alloc_dbginfo }
+   | Icheckbound_far
+   | Icheckbound_imm_far of { bound : int; }
+   | Ishiftarith of arith_operation * int
+diff --git a/asmcomp/arm64/emit.mlp b/asmcomp/arm64/emit.mlp
+index ec106487d8..59691cf4a7 100644
+--- a/asmcomp/arm64/emit.mlp
++++ b/asmcomp/arm64/emit.mlp
+@@ -563,8 +563,8 @@ module Size = struct
+   let relax_poll ~return_label =
+     Lop (Ispecific (Ipoll_far { return_label }))
+ 
+-  let relax_allocation ~num_bytes ~dbginfo =
+-    Lop (Ispecific (Ialloc_far { bytes = num_bytes; dbginfo }))
++  let relax_allocation ~num_bytes ~offset ~dbginfo =
++    Lop (Ispecific (Ialloc_far { bytes = num_bytes; offset; dbginfo }))
+ 
+   let relax_intop_checkbound () =
+     Lop (Ispecific (Icheckbound_far))
+@@ -581,7 +581,7 @@ module BR = Branch_relaxation.Make (Size)
+ 
+ (* Output the assembly code for allocation. *)
+ 
+-let assembly_code_for_allocation env i ~n ~far ~dbginfo =
++let assembly_code_for_allocation env i ~n ~comb_offset ~far ~dbginfo =
+   let lbl_frame =
+     record_frame_label env i.live (Dbg_alloc dbginfo)
+   in
+@@ -605,7 +605,7 @@ let assembly_code_for_allocation env i ~n ~far ~dbginfo =
+       `{emit_label lbl}:\n`
+     end;
+     `{emit_label lbl_after_alloc}:`;
+-    `	add	{emit_reg i.res.(0)}, {emit_reg reg_alloc_ptr}, #8\n`;
++    `	add	{emit_reg i.res.(0)}, {emit_reg reg_alloc_ptr}, #{emit_int (8 + comb_offset)}\n`;
+     env.call_gc_sites <-
+       { gc_lbl = lbl_call_gc;
+         gc_return_lbl = lbl_after_alloc;
+@@ -618,7 +618,7 @@ let assembly_code_for_allocation env i ~n ~far ~dbginfo =
+     | _  -> emit_intconst reg_x8 (Nativeint.of_int n);
+             `	bl	{emit_symbol "caml_allocN"}\n`
+     end;
+-    `{emit_label lbl_frame}:	add	{emit_reg i.res.(0)}, {emit_reg reg_alloc_ptr}, #8\n`
++    `{emit_label lbl_frame}:	add	{emit_reg i.res.(0)}, {emit_reg reg_alloc_ptr}, #{emit_int (8 + comb_offset)}\n`
+   end
+ 
+ let assembly_code_for_poll env i ~far ~return_label =
+@@ -875,10 +875,10 @@ let emit_instr env i =
+         | Double ->
+             `	str	{emit_reg src}, {emit_addressing addr base}\n`
+         end
+-    | Lop(Ialloc { bytes = n; dbginfo }) ->
+-        assembly_code_for_allocation env i ~n ~far:false ~dbginfo
+-    | Lop(Ispecific (Ialloc_far { bytes = n; dbginfo })) ->
+-        assembly_code_for_allocation env i ~n ~far:true ~dbginfo
++    | Lop(Ialloc { bytes = n; offset = comb_offset; dbginfo }) ->
++        assembly_code_for_allocation env i ~n ~comb_offset ~far:false ~dbginfo
++    | Lop(Ispecific (Ialloc_far { bytes = n; offset = comb_offset; dbginfo })) ->
++        assembly_code_for_allocation env i ~n ~comb_offset ~far:true ~dbginfo
+     | Lop(Ipoll { return_label }) ->
+         assembly_code_for_poll env i ~far:false ~return_label
+     | Lop(Ispecific (Ipoll_far { return_label })) ->
+diff --git a/asmcomp/branch_relaxation.ml b/asmcomp/branch_relaxation.ml
+index 38c4e3a893..320af1a1ab 100644
+--- a/asmcomp/branch_relaxation.ml
++++ b/asmcomp/branch_relaxation.ml
+@@ -95,8 +95,8 @@ module Make (T : Branch_relaxation_intf.S) = struct
+           | Lop (Ipoll { return_label }) ->
+             instr.desc <- T.relax_poll ~return_label;
+             fixup true (pc + T.instr_size f instr.desc) instr.next
+-          | Lop (Ialloc { bytes = num_bytes; dbginfo }) ->
+-            instr.desc <- T.relax_allocation ~num_bytes ~dbginfo;
++          | Lop (Ialloc { bytes = num_bytes; offset; dbginfo }) ->
++            instr.desc <- T.relax_allocation ~num_bytes ~offset ~dbginfo;
+             fixup true (pc + T.instr_size f instr.desc) instr.next
+           | Lop (Iintop (Icheckbound)) ->
+             instr.desc <- T.relax_intop_checkbound ();
+diff --git a/asmcomp/branch_relaxation_intf.mli b/asmcomp/branch_relaxation_intf.mli
+index 68596d592c..e1d022d1c0 100644
+--- a/asmcomp/branch_relaxation_intf.mli
++++ b/asmcomp/branch_relaxation_intf.mli
+@@ -63,6 +63,7 @@ module type S = sig
+      the size of out-of-line code (cf. branch_relaxation.mli). *)
+   val relax_allocation
+      : num_bytes:int
++    -> offset:int
+     -> dbginfo:Debuginfo.alloc_dbginfo
+     -> Linear.instruction_desc
+ 
+diff --git a/asmcomp/comballoc.ml b/asmcomp/comballoc.ml
+index f03bb3e66f..f16aef550d 100644
+--- a/asmcomp/comballoc.ml
++++ b/asmcomp/comballoc.ml
+@@ -53,13 +53,9 @@ let rec combine i allocstate =
+            match state with
+            | No_alloc -> assert false
+            | Pending_alloc { totalsz; dbginfos; _ } -> totalsz, dbginfos in
+-         let next =
+-           let offset = totalsz - sz in
+-           if offset = 0 then next
+-           else instr_cons_debug (Iop(Iintop_imm(Iadd, offset))) i.res
+-                i.res i.dbg next
+-         in
+-         (instr_cons_debug (Iop(Ialloc {bytes = totalsz; dbginfo; }))
++         (instr_cons_debug (Iop(Ialloc { bytes = totalsz;
++                                         offset = totalsz - sz;
++                                         dbginfo; }))
+           i.arg i.res i.dbg next, allocstate)
+       end
+   | Iop(Icall_ind | Icall_imm _ | Iextcall _ |
+diff --git a/asmcomp/mach.ml b/asmcomp/mach.ml
+index 5a2cc92515..0ec12f1efe 100644
+--- a/asmcomp/mach.ml
++++ b/asmcomp/mach.ml
+@@ -57,7 +57,7 @@ type operation =
+                mutability : Asttypes.mutable_flag;
+                is_atomic : bool }
+   | Istore of Cmm.memory_chunk * Arch.addressing_mode * bool
+-  | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo; }
++  | Ialloc of { bytes : int; offset: int; dbginfo : Debuginfo.alloc_dbginfo; }
+   | Iintop of integer_operation
+   | Iintop_imm of integer_operation * int
+   | Icompf of float_comparison
+diff --git a/asmcomp/mach.mli b/asmcomp/mach.mli
+index c0ca7836af..b9b6222e4d 100644
+--- a/asmcomp/mach.mli
++++ b/asmcomp/mach.mli
+@@ -58,7 +58,7 @@ type operation =
+                is_atomic : bool }
+   | Istore of Cmm.memory_chunk * Arch.addressing_mode * bool
+                                  (* false = initialization, true = assignment *)
+-  | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo; }
++  | Ialloc of { bytes : int; offset: int; dbginfo : Debuginfo.alloc_dbginfo; }
+   | Iintop of integer_operation
+   | Iintop_imm of integer_operation * int
+   | Icompf of float_comparison
+diff --git a/asmcomp/power/arch.ml b/asmcomp/power/arch.ml
+index 9d06669323..f7e2e74cfc 100644
+--- a/asmcomp/power/arch.ml
++++ b/asmcomp/power/arch.ml
+@@ -31,7 +31,7 @@ type specific_operation =
+     Imultaddf                           (* multiply and add *)
+   | Imultsubf                           (* multiply and subtract *)
+   | Ialloc_far of                       (* allocation in large functions *)
+-      { bytes : int; dbginfo : Debuginfo.alloc_dbginfo }
++      { bytes : int; offset : int; dbginfo : Debuginfo.alloc_dbginfo }
+   | Ipoll_far of { return_label : cmm_label option }
+                                         (* poll point in large functions *)
+   | Icheckbound_far                     (* bounds check in large functions *)
+@@ -93,8 +93,8 @@ let print_specific_operation printreg op ppf arg =
+   | Imultsubf ->
+       fprintf ppf "%a *f %a -f %a"
+         printreg arg.(0) printreg arg.(1) printreg arg.(2)
+-  | Ialloc_far { bytes; _ } ->
+-      fprintf ppf "alloc_far %d" bytes
++  | Ialloc_far { bytes; offset; _ } ->
++      fprintf ppf "alloc_far %d %d" bytes offset
+   | Ipoll_far _ ->
+       fprintf ppf "poll_far"
+   | Icheckbound_far ->
+diff --git a/asmcomp/power/arch.mli b/asmcomp/power/arch.mli
+index 031b86dc20..69792e3b40 100644
+--- a/asmcomp/power/arch.mli
++++ b/asmcomp/power/arch.mli
+@@ -29,7 +29,7 @@ type specific_operation =
+     Imultaddf                           (* multiply and add *)
+   | Imultsubf                           (* multiply and subtract *)
+   | Ialloc_far of                       (* allocation in large functions *)
+-      { bytes : int; dbginfo : Debuginfo.alloc_dbginfo }
++      { bytes : int; offset : int; dbginfo : Debuginfo.alloc_dbginfo }
+   | Ipoll_far of { return_label : cmm_label option }
+                                         (* poll point in large functions *)
+   | Icheckbound_far                     (* bounds check in large functions *)
+diff --git a/asmcomp/power/emit.mlp b/asmcomp/power/emit.mlp
+index 708739cf97..eef15d9062 100644
+--- a/asmcomp/power/emit.mlp
++++ b/asmcomp/power/emit.mlp
+@@ -494,8 +494,8 @@ module BR = Branch_relaxation.Make (struct
+     | Lraise (Lambda.Raise_regular | Lambda.Raise_reraise) -> 2
+     | Lraise Lambda.Raise_notrace -> 5
+ 
+-  let relax_allocation ~num_bytes:bytes ~dbginfo =
+-    Lop (Ispecific (Ialloc_far { bytes; dbginfo }))
++  let relax_allocation ~num_bytes:bytes ~offset ~dbginfo =
++    Lop (Ispecific (Ialloc_far { bytes; offset; dbginfo }))
+ 
+   let relax_poll ~return_label =
+     Lop (Ispecific (Ipoll_far { return_label }))
+@@ -513,7 +513,7 @@ end)
+ 
+ (* Assembly code for inlined allocation *)
+ 
+-let emit_alloc env i bytes dbginfo far =
++let emit_alloc env i bytes comb_offset dbginfo far =
+   if env.call_gc_label = 0 then env.call_gc_label <- new_label ();
+   let offset = Domainstate.(idx_of_field Domain_young_limit) * 8 in
+   `	ld	0, {emit_int offset}(30)\n`;
+@@ -522,13 +522,13 @@ let emit_alloc env i bytes dbginfo far =
+   if not far then begin
+     `	bltl-	{emit_label env.call_gc_label}\n`;
+     record_frame env i.live (Dbg_alloc dbginfo);
+-    `	addi	{emit_reg i.res.(0)}, 31, {emit_int size_addr}\n`
++    `	addi	{emit_reg i.res.(0)}, 31, {emit_int (size_addr + comb_offset)}\n`
+   end else begin
+     let lbl = new_label() in
+     `	bge+	{emit_label lbl}\n`;
+     `	bl	{emit_label env.call_gc_label}\n`;
+     record_frame env i.live (Dbg_alloc dbginfo);
+-    `{emit_label lbl}:	addi	{emit_reg i.res.(0)}, 31, {emit_int size_addr}\n`
++    `{emit_label lbl}:	addi	{emit_reg i.res.(0)}, 31, {emit_int (size_addr + comb_offset)}\n`
+   end
+ 
+ let emit_poll env i return_label far =
+@@ -757,10 +757,10 @@ let emit_instr env i =
+         if store_needs_lwsync chunk assignment then
+           `	lwsync\n`;
+         emit_load_store storeinstr addr i.arg 1 i.arg.(0)
+-    | Lop(Ialloc { bytes; dbginfo }) ->
+-        emit_alloc env i bytes dbginfo false
+-    | Lop(Ispecific(Ialloc_far { bytes; dbginfo })) ->
+-        emit_alloc env i bytes dbginfo true
++    | Lop(Ialloc { bytes; offset; dbginfo }) ->
++        emit_alloc env i bytes offset dbginfo false
++    | Lop(Ispecific(Ialloc_far { bytes; offset; dbginfo })) ->
++        emit_alloc env i bytes offset dbginfo true
+     | Lop(Ipoll { return_label }) ->
+         emit_poll env i return_label false
+     | Lop(Ispecific(Ipoll_far { return_label })) ->
+diff --git a/asmcomp/printmach.ml b/asmcomp/printmach.ml
+index 89b900c9ce..23ce3dff96 100644
+--- a/asmcomp/printmach.ml
++++ b/asmcomp/printmach.ml
+@@ -139,8 +139,8 @@ let operation op arg ppf res =
+        (Array.sub arg 1 (Array.length arg - 1))
+        reg arg.(0)
+        (if is_assign then "(assign)" else "(init)")
+-  | Ialloc { bytes = n; } ->
+-    fprintf ppf "alloc %i" n;
++  | Ialloc { bytes = n; offset; } ->
++    fprintf ppf "alloc %i %i" n offset;
+   | Iintop(op) -> fprintf ppf "%a%s%a" reg arg.(0) (intop op) reg arg.(1)
+   | Iintop_imm(op, n) -> fprintf ppf "%a%s%i" reg arg.(0) (intop op) n
+   | Icompf cmp -> fprintf ppf "%a%s%a" reg arg.(0) (floatcomp cmp) reg arg.(1)
+diff --git a/asmcomp/riscv/emit.mlp b/asmcomp/riscv/emit.mlp
+index a08d9f9a78..e47aa465bf 100644
+--- a/asmcomp/riscv/emit.mlp
++++ b/asmcomp/riscv/emit.mlp
+@@ -393,7 +393,7 @@ let emit_instr env i =
+         | Double -> "fsd"
+       in
+       `	{emit_string instr}	{emit_reg i.arg.(0)}, {emit_int ofs}({emit_reg i.arg.(1)})\n`
+-  | Lop(Ialloc {bytes; dbginfo}) ->
++  | Lop(Ialloc {bytes; offset = comb_offset; dbginfo}) ->
+       let lbl_frame_lbl = record_frame_label env i.live (Dbg_alloc dbginfo) in
+       if env.f.fun_fast then begin
+         let lbl_after_alloc = new_label () in
+@@ -404,7 +404,7 @@ let emit_instr env i =
+         `	ld	{emit_reg reg_tmp}, {emit_int offset}({emit_reg reg_domain_state_ptr})\n`;
+         `	bltu	{emit_reg reg_alloc_ptr}, {emit_reg reg_tmp}, {emit_label lbl_call_gc}\n`;
+         `{emit_label lbl_after_alloc}:\n`;
+-        `	addi	{emit_reg i.res.(0)}, {emit_reg reg_alloc_ptr}, 8\n`;
++        emit_addimm i.res.(0) reg_alloc_ptr (8 + comb_offset);
+         env.call_gc_sites <-
+           { gc_lbl = lbl_call_gc;
+             gc_return_lbl = lbl_after_alloc;
+@@ -419,7 +419,7 @@ let emit_instr env i =
+             `	{emit_call "caml_allocN"}\n`
+         end;
+         `{emit_label lbl_frame_lbl}:\n`;
+-        `	addi	{emit_reg i.res.(0)}, {emit_reg reg_alloc_ptr}, 8\n`
++        emit_addimm i.res.(0) reg_alloc_ptr (8 + comb_offset)
+       end
+   | Lop(Ipoll { return_label }) ->
+       let lbl_frame_lbl = record_frame_label env i.live (Dbg_alloc []) in
+diff --git a/asmcomp/s390x/emit.mlp b/asmcomp/s390x/emit.mlp
+index f25020c611..cf04d721c6 100644
+--- a/asmcomp/s390x/emit.mlp
++++ b/asmcomp/s390x/emit.mlp
+@@ -424,7 +424,7 @@ let emit_instr env i =
+           | Double -> "stdy" in
+         emit_load_store storeinstr addr i.arg 1 i.arg.(0)
+ 
+-    | Lop(Ialloc { bytes = n; dbginfo }) ->
++    | Lop(Ialloc { bytes = n; offset = comb_offset; dbginfo }) ->
+         let lbl_frame_lbl = record_frame_label env i.live (Dbg_alloc dbginfo) in
+         if env.f.fun_fast then begin
+           let lbl_after_alloc = new_label () in
+@@ -434,7 +434,7 @@ let emit_instr env i =
+           `	clg	%r11, {emit_int offset}(%r10)\n`;
+           `	brcl	4, {emit_label lbl_call_gc}\n`;  (* less than *)
+           `{emit_label lbl_after_alloc}:`;
+-          `	la	{emit_reg i.res.(0)}, 8(%r11)\n`;
++          `	la	{emit_reg i.res.(0)}, {emit_int (8 + comb_offset)}(%r11)\n`;
+           env.call_gc_sites <-
+             { gc_lbl = lbl_call_gc;
+               gc_return_lbl = lbl_after_alloc;
+@@ -449,7 +449,7 @@ let emit_instr env i =
+               `	{emit_call_got "caml_allocN"}\n`
+           end;
+           `{emit_label lbl_frame_lbl}:\n`;
+-          `	la	{emit_reg i.res.(0)}, 8(%r11)\n`
++          `	la	{emit_reg i.res.(0)}, {emit_int (8 + comb_offset)}(%r11)\n`
+         end
+ 
+     | Lop(Ipoll { return_label }) ->
+diff --git a/asmcomp/selectgen.ml b/asmcomp/selectgen.ml
+index fcf3aee942..5b311dec61 100644
+--- a/asmcomp/selectgen.ml
++++ b/asmcomp/selectgen.ml
+@@ -437,7 +437,7 @@ method select_operation op args _dbg =
+       end
+   | (Cdls_get, _) -> Idls_get, args
+   | (Cpoll, _) -> (Ipoll { return_label = None }), args
+-  | (Calloc, _) -> (Ialloc {bytes = 0; dbginfo = []}), args
++  | (Calloc, _) -> (Ialloc {bytes = 0; offset = 0; dbginfo = []}), args
+   | (Caddi, _) -> self#select_arith_comm Iadd args
+   | (Csubi, _) -> self#select_arith Isub args
+   | (Cmuli, _) -> self#select_arith_comm Imul args
+@@ -702,7 +702,8 @@ method emit_expr (env:environment) exp =
+               assert (bytes mod Arch.size_addr = 0);
+               let alloc_words = bytes / Arch.size_addr in
+               let op =
+-                Ialloc { bytes; dbginfo = [{alloc_words; alloc_dbg = dbg}] }
++                Ialloc { bytes; offset = 0;
++                         dbginfo = [{alloc_words; alloc_dbg = dbg}] }
+               in
+               self#insert_debug env (Iop op) dbg [||] rd;
+               self#emit_stores env new_args rd;
+-- 
+2.51.0.windows.2
+

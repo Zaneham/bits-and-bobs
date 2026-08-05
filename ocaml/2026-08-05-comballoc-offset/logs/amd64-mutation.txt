@@ -1,0 +1,10 @@
+--- displacements off the young pointer, as emitted
+          1 leaq	120(%r15)
+          1 leaq	64(%r15)
+          1 leaq	8(%r15)
+          1 leaq	88(%r15)
+--- after flattening every displacement to 8
+          4 leaq	8(%r15)
+--- run with the wrong displacements (expected to fail)
+    Segmentation fault (core dumped)
+    exit=139

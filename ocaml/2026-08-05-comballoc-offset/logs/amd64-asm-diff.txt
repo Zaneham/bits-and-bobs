@@ -1,0 +1,53 @@
+--- baseline: the young pointer bump and what follows
+    	subq	$104, %r15
+    	cmpq	(%r14), %r15
+    	jb	.L110
+    .L112:
+
+--- patched: same site
+    	subq	$104, %r15
+    	cmpq	(%r14), %r15
+    	jb	.L110
+    .L112:
+
+--- instruction counts (lines that are instructions, not labels or directives)
+    baseline 698
+    patched  695
+
+--- adds against the young pointer result, per file
+    baseline leaq off r15: 4, separate addq: 57
+    patched  leaq off r15: 4, separate addq: 54
+
+--- full diff
+    --- baseline.s	2026-08-05 13:54:33.884145860 +1200
+    +++ patched.s	2026-08-05 13:54:33.920146025 +1200
+    @@ -162,8 +162,7 @@
+     	cmpq	(%r14), %r15
+     	jb	.L110
+     .L112:
+    -	leaq	8(%r15), %rbx
+    -	addq	$80, %rbx
+    +	leaq	88(%r15), %rbx
+     	movq	$2048, -8(%rbx)
+     	movq	%rax, (%rbx)
+     	movq	%rax, %rdi
+    @@ -207,8 +206,7 @@
+     	cmpq	(%r14), %r15
+     	jb	.L114
+     .L116:
+    -	leaq	8(%r15), %rbx
+    -	addq	$112, %rbx
+    +	leaq	120(%r15), %rbx
+     	movq	$1024, -8(%rbx)
+     	movq	%rax, (%rbx)
+     	leaq	-56(%rbx), %rdi
+    @@ -561,8 +559,7 @@
+     	cmpq	(%r14), %r15
+     	jb	.L147
+     .L149:
+    -	leaq	8(%r15), %rbx
+    -	addq	$56, %rbx
+    +	leaq	64(%r15), %rbx
+     	movq	$2048, -8(%rbx)
+     	movq	%rax, (%rbx)
+     	movq	%rax, %rdi

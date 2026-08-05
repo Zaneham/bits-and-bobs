@@ -1,0 +1,87 @@
+Real hardware runs
+==================
+
+Each machine builds ocaml/ocaml#14812 from a fresh shallow clone with
+src/remote-build.sh, then runs both tests natively. Machines are donated
+hosts on a public compiler test farm; identifying details are left out on
+purpose.
+
+  POWER    IBM POWER10, 192 cores, Linux ppc64le
+  RISC-V   SpacemiT X60, 8 cores, Linux riscv64
+  s390x    IBM z15 (machine 8561), 2 cores, Linux s390x
+
+arm64 has no host here, so it was cross-built and run under qemu-aarch64
+instead. See logs/arm64-qemu.txt.
+
+I tried ppc64 big-endian and dropped it. OCaml has no native backend for it,
+and configure says so outright with "the native compiler is not supported on
+this platform", so there is nothing here for the patch to affect. Power
+coverage is ppc64le only.
+
+Tree built on every machine:
+
+  0c75e1fb comballoc: emit a single add after a combined allocation
+  built:   5.6.0+dev0-2026-01-26
+
+
+POWER10, ppc64le
+----------------------------------------------------------------------------
+comb_group      (four allocations per group, contents, overlap, survival
+                 across a minor collection, and clobbering by later
+                 allocations; 2M iterations)
+
+  --- combined groups (alloc <total bytes> <displacement>)
+      alloc 16 0
+      alloc 40 0
+      alloc 48 0
+      alloc 80 56
+      alloc 104 80
+      alloc 128 112
+  comb_group: ok
+
+comb_boundary   (16-byte block at the top of a full 2056-byte group, so the
+                 displacement is the largest reachable; 500k iterations)
+
+      alloc 2056 2040
+  comb_boundary: ok
+
+The bump and the displacement, one instruction each:
+
+      addi	31, 31, -104
+      cmpld	31, 0
+      bltl-	.L113
+  .L114:
+      addi	4, 31, 88
+
+and at the boundary, still a single addi, since power's immediate field is
+16-bit signed:
+
+      addi	31, 31, -2056
+      ...
+      addi	5, 31, 2048
+
+
+RISC-V, SpacemiT X60
+----------------------------------------------------------------------------
+  comb_group: ok
+  comb_boundary: ok
+
+This is the interesting one. 2056 - 16 + 8 = 2048 is one past the signed
+12-bit immediate that RISC-V addi takes, so the patch cannot use the plain
+addi the other backends use. It calls emit_addimm, which spills to a
+materialised constant:
+
+      li	t0, 2048
+      add	a2, s10, t0
+
+Exactly one such sequence in the file, at the boundary group. Everything
+below 2048 stays a single addi.
+
+
+s390x, z15
+----------------------------------------------------------------------------
+  comb_group: ok
+  comb_boundary: ok
+
+The displacement goes in the 12-bit unsigned field of la, so the full 0-4095
+range is available and 2048 is comfortably inside it.

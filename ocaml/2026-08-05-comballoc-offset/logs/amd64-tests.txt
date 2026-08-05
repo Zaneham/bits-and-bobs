@@ -1,0 +1,17 @@
+--- comb_group: combined groups (alloc <total bytes> <displacement>)
+    alloc 104 80
+    alloc 128 112
+    alloc 16 0
+    alloc 40 0
+    alloc 48 0
+    alloc 80 56
+--- comb_group: run
+    comb_group: ok
+--- comb_boundary: combined groups (alloc <total bytes> <displacement>)
+    alloc 16 0
+    alloc 2056 2040
+    alloc 24 0
+    alloc 40 0
+    alloc 48 0
+--- comb_boundary: run
+    comb_boundary: ok
