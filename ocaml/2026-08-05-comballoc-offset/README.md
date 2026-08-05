@@ -8,7 +8,9 @@ instruction the backends already emit to skip the header word, so the add
 goes away.
 
 Small patch, five backends, and a new field on `Ialloc` that every one of
-them has to honour. This is what I ran before saying anything on the PR.
+them has to honour. This is what I ran before saying anything on the PR, and
+the review it turned into is at
+https://github.com/ocaml/ocaml/pull/14812#pullrequestreview-4860578975
 
 Reviewed at `0c75e1fb`, against parent `e65c565a1f`. Everything here was
 regenerated at that pair; if the branch moves, none of it corresponds any
@@ -19,6 +21,7 @@ more.
 | Question | File |
 |---|---|
 | What does the patch actually change in the emitted code? | `logs/amd64-asm-diff.txt` |
+| What does each backend emit? | `asm/<arch>-comb_group.s` |
 | Does it work, and on what? | `logs/hardware-runs.txt`, `logs/arm64-qemu.txt` |
 | What about the two testsuite failures? | `logs/amd64-testsuite.txt` |
 | Can the displacement outgrow what a backend can encode? | `notes/displacement-bound.md` |
