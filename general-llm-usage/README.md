@@ -9,6 +9,9 @@ back.
 
 ## Prompts
 
+- 2026-08-07, Espresso in modern chip design.
+  [shared conversation](https://chatgpt.com/share/6a756a67-9a04-83ec-975c-37430f82efa7)
+
 - 2026-08-02, TAL to C transpiler.
   [shared conversation](https://chatgpt.com/s/t_6a6f01fed4fc8191b6317043d547ac24)
 
