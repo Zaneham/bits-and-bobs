@@ -9,6 +9,10 @@
 # That file is gitignored, because a list of things you mustn't publish is
 # itself a thing you mustn't publish.
 #
+# Known false positives go in .secretallow, one regex per line. That file is
+# tracked, so CI applies the same exemptions. Version numbers are the usual
+# culprit, since a four-part one is indistinguishable from an address.
+#
 # This script excludes itself from the scan, since it necessarily contains the
 # patterns it's looking for.
 
@@ -29,8 +33,22 @@ fi
 
 fail=0
 
+# Allowed line shapes, combined into one alternation. Applied to the matched
+# lines rather than to the file list, so an exemption never blinds the gate to
+# the rest of a file.
+allow=''
+if [ -f .secretallow ]; then
+  while IFS= read -r a; do
+    case "$a" in ''|'#'*) continue ;; esac
+    if [ -z "$allow" ]; then allow="$a"; else allow="$allow|$a"; fi
+  done < .secretallow
+fi
+
 check() {
   hits=$(printf '%s\n' $files | xargs grep -InE "$1" 2>/dev/null || true)
+  if [ -n "$hits" ] && [ -n "$allow" ]; then
+    hits=$(printf '%s\n' "$hits" | grep -vE "$allow" || true)
+  fi
   if [ -n "$hits" ]; then
     fail=1
     printf 'SECRET GATE: /%s/\n' "$1" >&2
