@@ -1,0 +1,93 @@
+18:39:28 RONMULT   MZ390 START USING z390 1.8.4.3 ON J2SE 25.0.1 08/07/26
+AZ390I Copyright (c) 2021 z390 Assembler LLC
+AZ390I z390 comes with ABSOLUTELY NO WARRANTY;
+AZ390I This is free software, and you are welcome to redistribute it
+AZ390I under certain conditions; see included LICENSE file for details.
+AZ390I program = C:\dev\bits-and-bobs\z390\2026-08-07-hlasm-macro-sublists\logs\RONMULT
+AZ390I options = sysmac(+C:/dev/z390/mac) ..  syscpy(+C:/dev/z390/mac)
+External Symbol Definitions
+ ESD=0001 LOC=00000000 LEN=00000000 TYPE=CST NAME=RONMULT
+Assembler Listing
+000000                                        (1/1)1 RONMULT  CSECT 
+000000                                        (1/2)2 *  Inner macro, to observe what a sublist looks like when passed on.
+000000                                        (1/3)3          MACRO
+000000                                        (1/4)4          INNER
+000000                                        (1/5)5          MNOTE *,'  INNER (1)  =>&SYSLIST(1)<'
+000000                                        (1/6)6          MNOTE *,'  INNER (1,1)=>&SYSLIST(1,1)<'
+000000                                        (1/7)7          MEND
+000000                                        (1/8)8 *  Multilevel sublist subscripting.  Counts live in RONCNT.MLC.
+000000                                        (1/9)9          MACRO
+000000                                      (1/10)10          MULT
+000000                                      (1/11)11          MNOTE *,'SYSLIST(1)     = >&SYSLIST(1)<'
+000000                                      (1/12)12          MNOTE *,'SYSLIST(2)     = >&SYSLIST(2)<'
+000000                                      (1/13)13          MNOTE *,'SYSLIST(2,1)   = >&SYSLIST(2,1)<'
+000000                                      (1/14)14          MNOTE *,'SYSLIST(2,2)   = >&SYSLIST(2,2)<'
+000000                                      (1/15)15          MNOTE *,'SYSLIST(2,2,1) = >&SYSLIST(2,2,1)<'
+000000                                      (1/16)16          MNOTE *,'SYSLIST(2,2,3) = >&SYSLIST(2,2,3)<'
+000000                                      (1/17)17          MNOTE *,'SYSLIST(2,9)   = >&SYSLIST(2,9)< past end'
+000000                                      (1/18)18          MNOTE *,'SYSLIST(9)     = >&SYSLIST(9)< past end'
+000000                                      (1/19)19          MNOTE *,'SYSLIST(1,1)   = >&SYSLIST(1,1)< not a sublist'
+000000                                      (1/20)20          INNER &SYSLIST(2)
+000000                                      (1/21)21          MEND
+000000                                      (1/22)22 *  Named positional parameter carrying a sublist.
+000000                                      (1/23)23          MACRO
+000000                                      (1/24)24          NAMED &P
+000000                                      (1/25)25          MNOTE *,'P=>&P< P(1)=>&P(1)< P(2)=>&P(2)<'
+000000                                      (1/26)26          MEND
+000000                                      (1/27)27 *
+000000                                      (1/28)28          MNOTE *,'=== MULT 1,(10,(100,200,300),30),3 ==='
+000000                                      (1/29)29          MULT  1,(10,(100,200,300),30),3
+000000                                      (1/11)30+         MNOTE *,'SYSLIST(1)     = >1<'
+000000                                      (1/12)31+         MNOTE *,'SYSLIST(2)     = >(10,(100,200,300),30)<'
+000000                                      (1/13)32+         MNOTE *,'SYSLIST(2,1)   = >10<'
+000000                                      (1/14)33+         MNOTE *,'SYSLIST(2,2)   = >(100,200,300)<'
+000000                                      (1/15)34+         MNOTE *,'SYSLIST(2,2,1) = >100<'
+000000                                      (1/16)35+         MNOTE *,'SYSLIST(2,2,3) = >300<'
+000000                                      (1/17)36+         MNOTE *,'SYSLIST(2,9)   = >< past end'
+000000                                      (1/18)37+         MNOTE *,'SYSLIST(9)     = >< past end'
+000000                                      (1/19)38+         MNOTE *,'SYSLIST(1,1)   = >1< not a sublist'
+000000                                       (1/5)40+         MNOTE *,'  INNER (1)  =>(10,(100,200,300),30)<'
+000000                                       (1/6)41+         MNOTE *,'  INNER (1,1)=>10<'
+000000                                      (1/30)44          MNOTE *,'=== omitted entries: MULT 1,(A,,C),3 ==='
+000000                                      (1/31)45          MULT  1,(A,,C),3
+000000                                      (1/11)46+         MNOTE *,'SYSLIST(1)     = >1<'
+000000                                      (1/12)47+         MNOTE *,'SYSLIST(2)     = >(A,,C)<'
+000000                                      (1/13)48+         MNOTE *,'SYSLIST(2,1)   = >A<'
+000000                                      (1/14)49+         MNOTE *,'SYSLIST(2,2)   = ><'
+000000                                      (1/15)50+         MNOTE *,'SYSLIST(2,2,1) = ><'
+000000                                      (1/16)51+         MNOTE *,'SYSLIST(2,2,3) = ><'
+000000                                      (1/17)52+         MNOTE *,'SYSLIST(2,9)   = >< past end'
+000000                                      (1/18)53+         MNOTE *,'SYSLIST(9)     = >< past end'
+000000                                      (1/19)54+         MNOTE *,'SYSLIST(1,1)   = >1< not a sublist'
+000000                                       (1/5)56+         MNOTE *,'  INNER (1)  =>(A,,C)<'
+000000                                       (1/6)57+         MNOTE *,'  INNER (1,1)=>A<'
+000000                                      (1/32)60          MNOTE *,'=== empty sublist: MULT 1,(),3 ==='
+000000                                      (1/33)61          MULT  1,(),3
+000000                                      (1/11)62+         MNOTE *,'SYSLIST(1)     = >1<'
+000000                                      (1/12)63+         MNOTE *,'SYSLIST(2)     = >()<'
+000000                                      (1/13)64+         MNOTE *,'SYSLIST(2,1)   = >()<'
+000000                                      (1/14)65+         MNOTE *,'SYSLIST(2,2)   = ><'
+000000                                      (1/15)66+         MNOTE *,'SYSLIST(2,2,1) = ><'
+000000                                      (1/16)67+         MNOTE *,'SYSLIST(2,2,3) = ><'
+000000                                      (1/17)68+         MNOTE *,'SYSLIST(2,9)   = >< past end'
+000000                                      (1/18)69+         MNOTE *,'SYSLIST(9)     = >< past end'
+000000                                      (1/19)70+         MNOTE *,'SYSLIST(1,1)   = >1< not a sublist'
+000000                                       (1/5)72+         MNOTE *,'  INNER (1)  =>()<'
+000000                                       (1/6)73+         MNOTE *,'  INNER (1,1)=>()<'
+000000                                      (1/34)76          MNOTE *,'=== named parameter: NAMED (X,Y,Z) ==='
+000000                                      (1/35)77          NAMED (X,Y,Z)
+000000                                      (1/25)78+         MNOTE *,'P=>(X,Y,Z)< P(1)=>X< P(2)=>Y<'
+000000                                      (1/36)80          MNOTE *,'=== named parameter, plain: NAMED Q ==='
+000000                                      (1/37)81          NAMED Q
+000000                                      (1/25)82+         MNOTE *,'P=>Q< P(1)=>Q< P(2)=><'
+000000                                      (1/38)84          END 
+..Symbol Table Listing..
+ SYM=RONMULT  LOC=00000000 LEN=00000000 ESD=0001 TYPE=CST  XREF=1 
+..Literal Table Listing..
+ 
+AZ390I total mnote warnings = 0
+AZ390I total mnote errors   = 0
+AZ390I max   mnote level    = 0
+AZ390I total mz390 errors   = 0
+AZ390I total az390 errors   = 0
+18:39:29 RONMULT   MZ390 ENDED   RC= 0 SEC= 0 MEM(MB)= 86 IO=134

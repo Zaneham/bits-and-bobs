@@ -1,0 +1,23 @@
+RONSUB   CSECT
+         GBLA  &A,&B,&C
+&A       SETA  100
+&B       SETA  200
+&C       SETA  300
+         MACRO
+         RON
+         LCLA  &I
+&I       SETA  1
+.LOOP    ANOP
+         MNOTE *,'&&SYSLIST(&I) = >&SYSLIST(&I)<'
+&I       SETA  &I+1
+         AIF   (&I LE N'&SYSLIST).LOOP
+         MEND
+         MNOTE *,'--- RON 1,2,3'
+         RON   1,2,3
+         MNOTE *,'--- RON 1,(10,20,30),3'
+         RON   1,(10,20,30),3
+         MNOTE *,'--- RON 1,(10,(&A,&B,&C),30),3'
+         RON   1,(10,(&A,&B,&C),30),3
+         MNOTE *,'--- RON 1,(10,(100,200,300),30),3'
+         RON   1,(10,(100,200,300),30),3
+         END

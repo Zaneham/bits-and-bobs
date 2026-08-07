@@ -1,0 +1,37 @@
+RONCMP   CSECT
+*  Character-relation collation: ASCII vs EBCDIC, and length rule.
+         MACRO
+         CMP   &L,&R
+         AIF   ('&L' LT '&R').LT
+         AIF   ('&L' EQ '&R').EQ
+         MNOTE *,'>&L< GT >&R<'
+         MEXIT
+.LT      MNOTE *,'>&L< LT >&R<'
+         MEXIT
+.EQ      MNOTE *,'>&L< EQ >&R<'
+         MEND
+*  Arithmetic relation applied to whatever it is handed.
+         MACRO
+         ARITH
+         MNOTE *,'operand 1 is >&SYSLIST(1)<, N=&SYSLIST(1)'
+         AIF   (&SYSLIST(1) LE 0).LOW
+         MNOTE *,'  arithmetic: NOT LE 0'
+         MEXIT
+.LOW     MNOTE *,'  arithmetic: LE 0'
+         MEND
+*
+         MNOTE *,'=== collation: letter vs digit ==='
+         CMP   A,1
+         MNOTE *,'=== collation: lower vs upper ==='
+         CMP   a,A
+         MNOTE *,'=== collation: shorter vs longer prefix ==='
+         CMP   AB,ABC
+         MNOTE *,'=== collation: blank vs letter ==='
+         CMP   $,A
+         MNOTE *,'=== arithmetic on a sublist ==='
+         ARITH (CH,R4,GE,TPCTPRI)
+         MNOTE *,'=== arithmetic on a null operand ==='
+         ARITH ,
+         MNOTE *,'=== arithmetic on a non-numeric string ==='
+         ARITH ABC
+         END

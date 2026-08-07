@@ -1,0 +1,27 @@
+RONT49   CSECT
+*  Table 49 of the HLASM Language Reference, run as-is.  &P is the first
+*  positional parameter and the macro is called with (A,(B,(C)),D).
+         MACRO
+         T49   &P
+         LCLA  &NP,&NP2,&NP22,&NP3
+&NP      SETA  N'&P
+&NP2     SETA  N'&P(2)
+&NP22    SETA  N'&P(2,2)
+&NP3     SETA  N'&P(3)
+         MNOTE *,'P         = >&P<'
+         MNOTE *,'P(1)      = >&P(1)<'
+         MNOTE *,'P(2)      = >&P(2)<'
+         MNOTE *,'P(2,1)    = >&P(2,1)<'
+         MNOTE *,'P(2,2)    = >&P(2,2)<'
+         MNOTE *,'P(2,2,1)  = >&P(2,2,1)<'
+         MNOTE *,'P(2,2,2)  = >&P(2,2,2)<'
+         MNOTE *,'N-P=&NP N-P(2)=&NP2 N-P(2,2)=&NP22 N-P(3)=&NP3'
+         MNOTE *,'via SYSLIST, same call:'
+         MNOTE *,'SYSLIST(1)       = >&SYSLIST(1)<'
+         MNOTE *,'SYSLIST(1,2)     = >&SYSLIST(1,2)<'
+         MNOTE *,'SYSLIST(1,2,2)   = >&SYSLIST(1,2,2)<'
+         MNOTE *,'SYSLIST(1,2,2,1) = >&SYSLIST(1,2,2,1)<'
+         MEND
+*
+         T49   (A,(B,(C)),D)
+         END

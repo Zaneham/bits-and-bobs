@@ -1,0 +1,51 @@
+18:39:29 RONSUB    MZ390 START USING z390 1.8.4.3 ON J2SE 25.0.1 08/07/26
+AZ390I Copyright (c) 2021 z390 Assembler LLC
+AZ390I z390 comes with ABSOLUTELY NO WARRANTY;
+AZ390I This is free software, and you are welcome to redistribute it
+AZ390I under certain conditions; see included LICENSE file for details.
+AZ390I program = C:\dev\bits-and-bobs\z390\2026-08-07-hlasm-macro-sublists\logs\RONSUB
+AZ390I options = sysmac(+C:/dev/z390/mac) ..  syscpy(+C:/dev/z390/mac)
+External Symbol Definitions
+ ESD=0001 LOC=00000000 LEN=00000000 TYPE=CST NAME=RONSUB
+Assembler Listing
+000000                                        (1/1)1 RONSUB   CSECT 
+000000                                        (1/6)2          MACRO
+000000                                        (1/7)3          RON
+000000                                        (1/8)4          LCLA  &I
+000000                                        (1/9)5 &I       SETA  1
+000000                                       (1/10)6 .LOOP    ANOP
+000000                                       (1/11)7          MNOTE *,'&&SYSLIST(&I) = >&SYSLIST(&I)<'
+000000                                       (1/12)8 &I       SETA  &I+1
+000000                                       (1/13)9          AIF   (&I LE N'&SYSLIST).LOOP
+000000                                      (1/14)10          MEND
+000000                                      (1/15)11          MNOTE *,'--- RON 1,2,3'
+000000                                      (1/16)12          RON   1,2,3
+000000                                      (1/11)13+         MNOTE *,'&SYSLIST(1) = >1<'
+000000                                      (1/11)14+         MNOTE *,'&SYSLIST(2) = >2<'
+000000                                      (1/11)15+         MNOTE *,'&SYSLIST(3) = >3<'
+000000                                      (1/17)17          MNOTE *,'--- RON 1,(10,20,30),3'
+000000                                      (1/18)18          RON   1,(10,20,30),3
+000000                                      (1/11)19+         MNOTE *,'&SYSLIST(1) = >1<'
+000000                                      (1/11)20+         MNOTE *,'&SYSLIST(2) = >(10,20,30)<'
+000000                                      (1/11)21+         MNOTE *,'&SYSLIST(3) = >3<'
+000000                                      (1/19)23          MNOTE *,'--- RON 1,(10,(100,200,300),30),3'
+000000                                      (1/20)24          RON   1,(10,(100,200,300),30),3
+000000                                      (1/11)25+         MNOTE *,'&SYSLIST(1) = >1<'
+000000                                      (1/11)26+         MNOTE *,'&SYSLIST(2) = >(10,(100,200,300),30)<'
+000000                                      (1/11)27+         MNOTE *,'&SYSLIST(3) = >3<'
+000000                                      (1/21)29          MNOTE *,'--- RON 1,(10,(100,200,300),30),3'
+000000                                      (1/22)30          RON   1,(10,(100,200,300),30),3
+000000                                      (1/11)31+         MNOTE *,'&SYSLIST(1) = >1<'
+000000                                      (1/11)32+         MNOTE *,'&SYSLIST(2) = >(10,(100,200,300),30)<'
+000000                                      (1/11)33+         MNOTE *,'&SYSLIST(3) = >3<'
+000000                                      (1/23)35          END 
+..Symbol Table Listing..
+ SYM=RONSUB   LOC=00000000 LEN=00000000 ESD=0001 TYPE=CST  XREF=1 
+..Literal Table Listing..
+ 
+AZ390I total mnote warnings = 0
+AZ390I total mnote errors   = 0
+AZ390I max   mnote level    = 0
+AZ390I total mz390 errors   = 0
+AZ390I total az390 errors   = 0
+18:39:29 RONSUB    MZ390 ENDED   RC= 0 SEC= 0 MEM(MB)= 88 IO=77
