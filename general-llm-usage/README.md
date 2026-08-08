@@ -9,6 +9,9 @@ back.
 
 ## Prompts
 
+- 2026-08-08, Trying to figure out SV errors.
+  [shared conversation](https://chatgpt.com/share/6a76d8f8-53e4-83ec-a83a-ff6321b0e11a)
+
 - 2026-08-07, Espresso in modern chip design.
   [shared conversation](https://chatgpt.com/share/6a756a67-9a04-83ec-975c-37430f82efa7)
 
