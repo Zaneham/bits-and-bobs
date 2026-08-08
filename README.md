@@ -75,10 +75,10 @@ working. My transparency page covers the same ground and points back here.
 
 This repository will feature heavy LLM usage. It shows generated tests and some generated documentation. Where documentation is wholly synthetic and has had no revisions or edits by me, nor was a voice to text and then organised, it will be marked as synthetic with what model was used to generate it.
 
-Qwen coder
-Chatgpt
-Claude code (when credits allow)
-Deepseek 
+- Qwen coder
+- Chatgpt
+- Claude code (when credits allow)
+- Deepseek 
 
 All feature here. 
 
