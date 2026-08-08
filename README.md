@@ -70,3 +70,18 @@ remember.
 
 `general-llm-usage/` has my prompts and how I actually use models when I'm
 working. My transparency page covers the same ground and points back here.
+
+## On that note - LLM Usage
+
+This repository will feature heavy LLM usage. It shows generated tests and some generated documentation. Where documentation is wholly synthetic and has had no revisions or edits by me, nor was a voice to text and then organised, it will be marked as synthetic with what model was used to generate it.
+
+Qwen coder
+Chatgpt
+Claude code (when credits allow)
+Deepseek 
+
+All feature here. 
+
+## Thanks! 
+
+Thanks for reading, if you have any questions about anything in this repository or if you just want to "spin a few yarns" then feel free to get in touch.
