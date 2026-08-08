@@ -36,9 +36,12 @@ fail=0
 # Allowed line shapes, combined into one alternation. Applied to the matched
 # lines rather than to the file list, so an exemption never blinds the gate to
 # the rest of a file.
+# Strip CR first. A Windows checkout leaves one on every line, which kills the
+# exemptions and turns the blank line into a \r that would match anything.
 allow=''
 if [ -f .secretallow ]; then
   while IFS= read -r a; do
+    a=$(printf '%s' "$a" | tr -d '\r')
     case "$a" in ''|'#'*) continue ;; esac
     if [ -z "$allow" ]; then allow="$a"; else allow="$allow|$a"; fi
   done < .secretallow
@@ -75,6 +78,7 @@ PATTERNS
 # Literal wordlist, if present.
 if [ -f .secretwords ]; then
   while IFS= read -r w; do
+    w=$(printf '%s' "$w" | tr -d '\r')
     case "$w" in ''|'#'*) continue ;; esac
     hits=$(printf '%s\n' $files | xargs grep -Iln -F -- "$w" 2>/dev/null || true)
     if [ -n "$hits" ]; then
