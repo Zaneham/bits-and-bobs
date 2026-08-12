@@ -1,0 +1,18 @@
+Specified modules: c_call.ml
+Source modules: c_call.ml
+Running test frame_pointers with 1 actions
+
+Running action 1/1 (frame_pointers)
+Action 1/1 (frame_pointers) => passed (frame-pointers available)
+Running test bsd with 1 actions
+
+Running action 1/1 (bsd)
+Action 1/1 (bsd) => skipped (not on a BSD system)
+Running test arch_power with 1 actions
+
+Running action 1/1 (arch_power)
+Action 1/1 (arch_power) => passed (Target is POWER architecture)
+Running test native with 1 actions
+
+Running action 1/1 (skip)
+Action 1/1 (skip) => skipped (the skip action always skips)
