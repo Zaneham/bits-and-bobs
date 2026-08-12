@@ -1,0 +1,138 @@
+stress_cae.ml, 4 domains. amd64 native, the rest cross-compiled and run
+under qemu-user. qemu-user serialises, so these show the encodings
+assemble and the logic holds. They do not exercise the fences.
+
+======================= amd64 (native) =======================
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+======================= arm64 (qemu-user) =======================
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+======================= riscv (qemu-user) =======================
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+======================= power (qemu-user) =======================
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+======================= s390x (qemu-user) =======================
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK

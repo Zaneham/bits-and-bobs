@@ -1,0 +1,155 @@
+Real hardware runs.
+
+The qemu-user runs in qemu-and-native-runs.txt cover encodings and logic but
+not ordering, because qemu-user serialises. These are the ones that put the
+fences under real weak memory ordering with real concurrency.
+
+Hosts are donated machines on a public compiler test farm, plus a community
+mainframe instance. Each built the same tree from the same checkout, cloned
+straight from the fork branch with the patch applied on top.
+
+  ppc64le    IBM Power10, 192 cores
+  riscv64    SpacemiT X60, 8 cores
+  s390x      z15, 2 cores
+
+Power is the interesting one for this change, because ldarx now reads straight
+into the result register instead of going through r0, and because 192 cores
+lets the reservation actually get stolen. RISC-V is the other one, because the
+sc status moved off the result register onto t1 and the loop had to stay inside
+the constrained LR/SC limits.
+
+
+================================================================
+ppc64le, IBM Power10, 192 cores
+================================================================
+
+--- patch applied cleanly, world.opt built ---
+
+--- stress_cae, 4 domains ---
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+--- stress_cae, 32 domains ---
+Contended increment (32 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+--- full upstream testsuite ---
+Summary:
+  1618 tests passed
+    54 tests skipped
+     0 tests failed
+     0 tests not started (parent test skipped or failed)
+     0 unexpected errors
+  1672 tests considered
+
+Same counts as amd64.
+
+
+================================================================
+riscv64, SpacemiT X60, 8 cores
+================================================================
+
+--- patch applied cleanly, world.opt built ---
+
+--- stress_cae, 4 domains ---
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+
+================================================================
+s390x, z15, 2 cores
+================================================================
+
+--- patch applied cleanly, world.opt built ---
+
+--- stress_cae, 4 domains ---
+Single-threaded semantics
+  PASS: cas hit returns true
+  PASS: cas hit stored
+  PASS: cas miss returns false
+  PASS: cas miss left value alone
+  PASS: cas to same value
+  PASS: exchange returns old
+  PASS: exchange stored
+  PASS: bool cas hit
+  PASS: bool cas miss
+  PASS: bool value
+  PASS: negative cas
+  PASS: negative stored
+  PASS: max_int cas
+  PASS: max_int stored
+Boxed (barrier retained)
+  PASS: boxed cas miss
+  PASS: boxed cas hit
+  PASS: boxed value
+  PASS: boxed survives gc
+Contended increment (4 domains x 100000)
+  PASS: no lost updates
+Contended exchange
+  PASS: every value observed exactly once
+ALL OK
+
+z/Architecture is strongly ordered and CSG serialises on both sides anyway
+(SA22-7832 page 7-159), so s390x carries the least ordering risk of the three.
+The change there is a pure deletion, and this is that deletion running on the
+real machine.
+
+
+================================================================
+arm64
+================================================================
+
+No arm64 host in this set, so arm64 is qemu only. Its change is the same shape
+as the s390x one, a deletion of the cset at the end. The arm64 emitter
+self-checks instruction lengths at assembly time, so a wrong size table entry
+fails the build rather than miscompiling, which covers the size change but not
+the ordering.

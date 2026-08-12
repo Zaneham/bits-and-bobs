@@ -1,0 +1,523 @@
+From <commit> Mon Sep 17 00:00:00 2001
+From: <author>
+Date: 2026-08-12
+Subject: [PATCH] asmcomp: make atomic compare-exchange the primitive, derive
+ compare-and-set
+
+The instruction already reports the value it found, so returning that and
+testing it in cmmgen replaces the per-backend boolean materialisation.
+---
+ asmcomp/CSEgen.ml           |  2 +-
+ asmcomp/amd64/emit.mlp      | 25 +++++++++++++------------
+ asmcomp/amd64/selection.ml  |  6 +++---
+ asmcomp/arm64/emit.mlp      | 11 +++++------
+ asmcomp/arm64/proc.ml       |  5 +++--
+ asmcomp/cmm.ml              |  2 +-
+ asmcomp/cmm.mli             |  4 +++-
+ asmcomp/cmmgen.ml           | 20 ++++++++++++++------
+ asmcomp/interf.ml           |  2 +-
+ asmcomp/mach.ml             |  4 ++--
+ asmcomp/mach.mli            |  2 +-
+ asmcomp/polling.ml          |  2 +-
+ asmcomp/power/emit.mlp      | 19 ++++++++-----------
+ asmcomp/printcmm.ml         |  2 +-
+ asmcomp/printmach.ml        |  5 +++--
+ asmcomp/riscv/emit.mlp      | 23 ++++++++++-------------
+ asmcomp/s390x/emit.mlp      | 20 ++++++++------------
+ asmcomp/schedgen.ml         |  2 +-
+ asmcomp/selectgen.ml        |  8 ++++----
+ asmcomp/thread_sanitizer.ml |  7 ++++---
+ 20 files changed, 87 insertions(+), 84 deletions(-)
+
+diff --git a/asmcomp/CSEgen.ml b/asmcomp/CSEgen.ml
+index ff722d75ab..cb056bf17f 100644
+--- a/asmcomp/CSEgen.ml
++++ b/asmcomp/CSEgen.ml
+@@ -237,7 +237,7 @@ method class_of_operation op =
+       if is_atomic then Op_store true
+       else Op_load mutability
+   | Istore(_,_,asg) -> Op_store asg
+-  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_cas ->
++  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_compare_exchange ->
+       Op_store true  (* atomic read-modify-write *)
+   | Ialloc _ | Ipoll _ -> assert false     (* treated specially *)
+   | Iintop(Icheckbound) -> Op_checkbound
+diff --git a/asmcomp/amd64/emit.mlp b/asmcomp/amd64/emit.mlp
+index a950b8deb3..e767242be0 100644
+--- a/asmcomp/amd64/emit.mlp
++++ b/asmcomp/amd64/emit.mlp
+@@ -773,28 +773,29 @@ let emit_instr env fallthrough i =
+       def_label lbl_multi;
+       I.xchg (res i 0) (mem64 QWORD 0 (arg64 i 0));
+       def_label lbl_done
+-  | Lop (Iatomic_cas) ->
+-      (* rax holds the expected value on entry. A lone domain does the compare
+-         and the store by hand through res.(1): an unlocked cmpxchg would
+-         still serialise on the same port, the same reason fetch-and-add does
+-         not use an unlocked xadd here. mov leaves the flags alone, so both
+-         paths reach the setcc with ZF meaning "swapped". *)
++  | Lop (Iatomic_compare_exchange) ->
++      (* rax holds the expected value on entry and cmpxchg overwrites it with
++         whatever it found, which is exactly the result, so the locked path
++         needs nothing after it. A lone domain does the compare and the store
++         by hand through res.(1): an unlocked cmpxchg would still serialise on
++         the same port, the same reason fetch-and-add does not use an unlocked
++         xadd here. That path has to copy the value it loaded into rax itself,
++         since rax is still holding the expected value. *)
+       let lbl_multi = new_label() in
++      let lbl_stored = new_label() in
+       let lbl_done = new_label() in
+       I.cmp (int 1) (mem64 QWORD 0 (arg64 i 3));
+       I.jne (label lbl_multi);
+       I.mov (mem64 QWORD 0 (arg64 i 0)) (res i 1);
+       I.cmp (res i 1) (arg i 1);
+-      I.jne (label lbl_done);
++      I.jne (label lbl_stored);
+       I.mov (arg i 2) (mem64 QWORD 0 (arg64 i 0));
++      def_label lbl_stored;
++      I.mov (res i 1) (res i 0);
+       I.jmp (label lbl_done);
+       def_label lbl_multi;
+       I.lock_cmpxchg (arg i 2) (mem64 QWORD 0 (arg64 i 0));
+-      def_label lbl_done;
+-      (* res.(0) is rax, so al is free to take ZF before we widen it. cmmgen
+-         tags the 0/1 the same way it tags any other comparison. *)
+-      I.set E al;
+-      I.movzx al (res i 0)
++      def_label lbl_done
+   | Lop (Ireturn_addr) ->
+       let offset = frame_size env - 8 in
+       I.mov (mem64 QWORD offset RSP) (res i 0)
+diff --git a/asmcomp/amd64/selection.ml b/asmcomp/amd64/selection.ml
+index f166f1aa7c..9890d70d28 100644
+--- a/asmcomp/amd64/selection.ml
++++ b/asmcomp/amd64/selection.ml
+@@ -141,7 +141,7 @@ let pseudoregs_for_operation op arg res =
+      res.(1) is a scratch for the single-domain path, which loads and stores
+      by hand rather than paying for a cmpxchg it does not need.
+      arg.(3) is &caml_num_domains_running. *)
+-  | Iatomic_cas ->
++  | Iatomic_compare_exchange ->
+       let treg = Reg.create Int in
+       ([| arg.(0); rax; arg.(2); arg.(3) |], [| rax; treg |])
+   (* Other instructions are regular *)
+@@ -287,8 +287,8 @@ method! select_operation op args dbg =
+   | Catomic_exchange ->
+       (Iatomic_exchange,
+        args @ [Cconst_symbol ("caml_num_domains_running", dbg)])
+-  | Catomic_cas ->
+-      (Iatomic_cas,
++  | Catomic_compare_exchange ->
++      (Iatomic_compare_exchange,
+        args @ [Cconst_symbol ("caml_num_domains_running", dbg)])
+   | _ -> super#select_operation op args dbg
+ 
+diff --git a/asmcomp/arm64/emit.mlp b/asmcomp/arm64/emit.mlp
+index cdb140bf11..723259fcae 100644
+--- a/asmcomp/arm64/emit.mlp
++++ b/asmcomp/arm64/emit.mlp
+@@ -544,7 +544,7 @@ module Size = struct
+     | Lop (Idls_get) -> 1
+     | Lop (Iatomic_fetch_add) -> 5
+     | Lop (Iatomic_exchange) -> 4
+-    | Lop (Iatomic_cas) -> 9
++    | Lop (Iatomic_compare_exchange) -> 8
+     | Lop (Ireturn_addr) -> 1
+     | Lreloadretaddr -> 0
+     | Lreturn -> epilogue_size f + (if top_bits_ignore then 0 else 1)
+@@ -1049,10 +1049,10 @@ let emit_instr env i =
+         `	stlxr	{emit_wreg reg_tmp2}, {emit_reg i.arg.(1)}, [{emit_reg i.arg.(0)}]\n`;
+         `	cbnz	{emit_wreg reg_tmp2}, {emit_label lbl}\n`;
+         `	dmb	ishst\n`
+-    | Lop(Iatomic_cas) ->
+-        (* res.(0) holds the loaded value until the very end, where cset
+-           overwrites it with the result. The flags set by cmp survive stlxr,
+-           cbnz, b and clrex, so both paths land on the same cset.
++    | Lop(Iatomic_compare_exchange) ->
++        (* res.(0) is the loaded value and now simply stays that way, which is
++           what the operation returns. Both paths still join at the release
++           barrier.
+            clrex is not architecturally required for an abandoned ldaxr (ARM
+            ARM B2.10.5) but drops the monitor rather than leaving it marked. *)
+         let lbl = new_label() in
+@@ -1068,7 +1068,6 @@ let emit_instr env i =
+         `{emit_label lbl_fail}:\n`;
+         `	clrex\n`;
+         `{emit_label lbl_done}:\n`;
+-        `	cset	{emit_reg i.res.(0)}, eq\n`;
+         `	dmb	ishst\n`
+     | Lop(Iatomic_fetch_add) ->
+         (* LL/SC loop, works on baseline ARMv8.0 (no LSE required).
+diff --git a/asmcomp/arm64/proc.ml b/asmcomp/arm64/proc.ml
+index d566328da8..979cb97960 100644
+--- a/asmcomp/arm64/proc.ml
++++ b/asmcomp/arm64/proc.ml
+@@ -271,7 +271,7 @@ let destroyed_at_oper = function
+       [| reg_d7 |]            (* d7 / s7 destroyed *)
+   | Iop(Iatomic_fetch_add) ->
+       [| reg_x16; reg_x17 |]  (* x16=sum, x17=stlxr status in LL/SC loop *)
+-  | Iop(Iatomic_exchange | Iatomic_cas) ->
++  | Iop(Iatomic_exchange | Iatomic_compare_exchange) ->
+       [| reg_x17 |]           (* x17=stlxr status in LL/SC loop *)
+   | _ -> [||]
+ 
+@@ -292,7 +292,8 @@ let max_register_pressure = function
+   | Iintoffloat | Ifloatofint
+   | Iload{memory_chunk=Single; _} | Istore(Single, _, _) -> [| 23; 31 |]
+   | Iatomic_fetch_add -> [| 21; 32 |]  (* x16+x17 used as scratch *)
+-  | Iatomic_exchange | Iatomic_cas -> [| 22; 32 |]  (* x17 used as scratch *)
++  | Iatomic_exchange | Iatomic_compare_exchange ->
++      [| 22; 32 |]                (* x17 used as scratch *)
+   | _ -> [| 23; 32 |]
+ 
+ (* Calling the assembler *)
+diff --git a/asmcomp/cmm.ml b/asmcomp/cmm.ml
+index 98fb985a8e..2bd59e047c 100644
+--- a/asmcomp/cmm.ml
++++ b/asmcomp/cmm.ml
+@@ -171,7 +171,7 @@ and operation =
+   | Copaque
+   | Catomic_fetch_add
+   | Catomic_exchange
+-  | Catomic_cas
++  | Catomic_compare_exchange
+   | Cdls_get
+   | Cpoll
+ 
+diff --git a/asmcomp/cmm.mli b/asmcomp/cmm.mli
+index b956cd864d..abcabf3fa0 100644
+--- a/asmcomp/cmm.mli
++++ b/asmcomp/cmm.mli
+@@ -170,7 +170,9 @@ and operation =
+   | Copaque (* Sys.opaque_identity *)
+   | Catomic_fetch_add (* Atomic read-modify-write: fetch old value and add *)
+   | Catomic_exchange (* Atomic swap: store a value, return the old one *)
+-  | Catomic_cas (* Atomic compare-and-set, returns a tagged boolean *)
++  | Catomic_compare_exchange (* Atomic compare-and-exchange: store the new
++                                value if the old one matches, and return the
++                                value that was found either way *)
+   | Cdls_get
+   | Cpoll
+ 
+diff --git a/asmcomp/cmmgen.ml b/asmcomp/cmmgen.ml
+index ff331d60b0..042a36de11 100644
+--- a/asmcomp/cmmgen.ml
++++ b/asmcomp/cmmgen.ml
+@@ -486,12 +486,20 @@ let rec transl env e =
+           transl_ccall env prim args dbg
+       | (Patomic_cas, [ptr; ofs; oldval; newval]) when native_atomics ->
+           (* translprim only builds this when the value is immediate, so there
+-             is no write barrier to run and the instruction is the whole job. *)
+-          tag_int
+-            (Cop(Catomic_cas,
+-                 [field_address_computed (transl env ptr) (transl env ofs) dbg;
+-                  transl env oldval; transl env newval], dbg))
+-            dbg
++             is no write barrier to run and the instruction is the whole job.
++             The instruction reports the value it found, and compare-and-set is
++             that value tested against the expected one. Immediates compare as
++             plain words, so this is the same equality the boolean would have
++             been built from, only spelled once. *)
++          bind "expected" (transl env oldval) (fun expected ->
++            tag_int
++              (Cop(Ccmpi Ceq,
++                   [Cop(Catomic_compare_exchange,
++                        [field_address_computed
++                           (transl env ptr) (transl env ofs) dbg;
++                         expected; transl env newval], dbg);
++                    expected], dbg))
++              dbg)
+       | (Patomic_cas, args) ->
+           Cop(Cextcall("caml_atomic_cas_field", typ_val, [], false),
+               List.map (transl env) args, dbg)
+diff --git a/asmcomp/interf.ml b/asmcomp/interf.ml
+index ed8c657c63..fb8080a57c 100644
+--- a/asmcomp/interf.ml
++++ b/asmcomp/interf.ml
+@@ -92,7 +92,7 @@ let build_graph fundecl =
+         interf i.next
+     | Iop(Itailcall_ind) -> ()
+     | Iop(Itailcall_imm _) -> ()
+-    | Iop(Iatomic_exchange | Iatomic_cas) ->
++    | Iop(Iatomic_exchange | Iatomic_compare_exchange) ->
+         (* Every result, including the amd64 scratch, must differ from every
+            argument. The address in particular is still needed after the old
+            value has been loaded, and an LL/SC loop re-reads all of them.
+diff --git a/asmcomp/mach.ml b/asmcomp/mach.ml
+index 46b40fad3d..28fad69b6c 100644
+--- a/asmcomp/mach.ml
++++ b/asmcomp/mach.ml
+@@ -59,7 +59,7 @@ type operation =
+   | Istore of Cmm.memory_chunk * Arch.addressing_mode * bool
+   | Iatomic_fetch_add
+   | Iatomic_exchange
+-  | Iatomic_cas
++  | Iatomic_compare_exchange
+   | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo; }
+   | Iintop of integer_operation
+   | Iintop_imm of integer_operation * int
+@@ -157,7 +157,7 @@ let rec instr_iter f i =
+ let operation_is_pure = function
+   | Icall_ind | Icall_imm _ | Itailcall_ind | Itailcall_imm _
+   | Iextcall _ | Istackoffset _ | Istore _ | Ialloc _
+-  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_cas
++  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_compare_exchange
+   | Ipoll _ | Idls_get
+   | Iintop(Icheckbound) | Iintop_imm(Icheckbound, _) | Iopaque -> false
+   | Ispecific sop -> Arch.operation_is_pure sop
+diff --git a/asmcomp/mach.mli b/asmcomp/mach.mli
+index efccc2c011..9abe01640f 100644
+--- a/asmcomp/mach.mli
++++ b/asmcomp/mach.mli
+@@ -60,7 +60,7 @@ type operation =
+                                  (* false = initialization, true = assignment *)
+   | Iatomic_fetch_add
+   | Iatomic_exchange
+-  | Iatomic_cas
++  | Iatomic_compare_exchange
+   | Ialloc of { bytes : int; dbginfo : Debuginfo.alloc_dbginfo; }
+   | Iintop of integer_operation
+   | Iintop_imm of integer_operation * int
+diff --git a/asmcomp/polling.ml b/asmcomp/polling.ml
+index a551fe812a..3a38cf4bbc 100644
+--- a/asmcomp/polling.ml
++++ b/asmcomp/polling.ml
+@@ -251,7 +251,7 @@ let find_poll_alloc_or_calls instr =
+       | Iop(Imove | Ispill | Ireload | Iconst_int _ | Iconst_float _ |
+             Iconst_symbol _ | Iextcall { alloc = false } | Istackoffset _ |
+             Iload _ | Istore _ | Iatomic_fetch_add |
+-            Iatomic_exchange | Iatomic_cas | Iintop _ | Iintop_imm _ |
++            Iatomic_exchange | Iatomic_compare_exchange | Iintop _ | Iintop_imm _ |
+             Ifloatofint | Iintoffloat | Inegf | Iabsf | Iaddf | Isubf | Imulf |
+             Idivf | Iopaque | Ispecific _ | Idls_get | Icompf _ | Ireturn_addr)
+             -> None
+diff --git a/asmcomp/power/emit.mlp b/asmcomp/power/emit.mlp
+index ea768c255e..a5312645bb 100644
+--- a/asmcomp/power/emit.mlp
++++ b/asmcomp/power/emit.mlp
+@@ -477,7 +477,7 @@ module BR = Branch_relaxation.Make (struct
+     | Lop(Idls_get) -> 1
+     | Lop(Iatomic_fetch_add) -> 7
+     | Lop(Iatomic_exchange) -> 6
+-    | Lop(Iatomic_cas) -> 11
++    | Lop(Iatomic_compare_exchange) -> 8
+     | Lop(Ireturn_addr) -> 1
+     | Lreloadretaddr -> 2
+     | Lreturn -> 2
+@@ -859,25 +859,22 @@ let emit_instr env i =
+         `	bne-	{emit_label lbl}\n`;
+         `	isync\n`;
+         `	lwsync\n`
+-    | Lop (Iatomic_cas) ->
++    | Lop (Iatomic_compare_exchange) ->
+         (* The compare-and-swap primitive from the Programming Environments
+-           Manual D.3, with r0 holding the loaded value. Leaving the
++           Manual D.3. The loaded value is the result now, so ldarx reads
++           straight into res.(0) and the scratch through r0 is gone, as is
++           the pair of li that used to materialise the boolean. Leaving the
+            reservation behind on the failure path is what that example does.
+            isync and lwsync as for fetch-and-add, see #10995. *)
+         let lbl = new_label() in
+-        let lbl_fail = new_label() in
+         let lbl_done = new_label() in
+         `	sync\n`;
+         `{emit_label lbl}:\n`;
+-        `	ldarx	0, 0, {emit_reg i.arg.(0)}\n`;
+-        `	cmpd	0, {emit_reg i.arg.(1)}\n`;
+-        `	bne-	{emit_label lbl_fail}\n`;
++        `	ldarx	{emit_reg i.res.(0)}, 0, {emit_reg i.arg.(0)}\n`;
++        `	cmpd	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}\n`;
++        `	bne-	{emit_label lbl_done}\n`;
+         `	stdcx.	{emit_reg i.arg.(2)}, 0, {emit_reg i.arg.(0)}\n`;
+         `	bne-	{emit_label lbl}\n`;
+-        `	li	{emit_reg i.res.(0)}, 1\n`;
+-        `	b	{emit_label lbl_done}\n`;
+-        `{emit_label lbl_fail}:\n`;
+-        `	li	{emit_reg i.res.(0)}, 0\n`;
+         `{emit_label lbl_done}:\n`;
+         `	isync\n`;
+         `	lwsync\n`
+diff --git a/asmcomp/printcmm.ml b/asmcomp/printcmm.ml
+index ab083417fc..1a06c75aa4 100644
+--- a/asmcomp/printcmm.ml
++++ b/asmcomp/printcmm.ml
+@@ -166,7 +166,7 @@ let operation d = function
+   | Copaque -> "opaque"
+   | Catomic_fetch_add -> "atomic_fetch_add"
+   | Catomic_exchange -> "atomic_exchange"
+-  | Catomic_cas -> "atomic_cas"
++  | Catomic_compare_exchange -> "atomic_compare_exchange"
+   | Cdls_get -> "dls_get"
+   | Cpoll -> "poll"
+ 
+diff --git a/asmcomp/printmach.ml b/asmcomp/printmach.ml
+index 3a85f0805a..01a96a4884 100644
+--- a/asmcomp/printmach.ml
++++ b/asmcomp/printmach.ml
+@@ -143,8 +143,9 @@ let operation op arg ppf res =
+       fprintf ppf "atomic_fetch_add [%a] %a" reg arg.(0) reg arg.(1)
+   | Iatomic_exchange ->
+       fprintf ppf "atomic_exchange [%a] %a" reg arg.(0) reg arg.(1)
+-  | Iatomic_cas ->
+-      fprintf ppf "atomic_cas [%a] %a %a" reg arg.(0) reg arg.(1) reg arg.(2)
++  | Iatomic_compare_exchange ->
++      fprintf ppf "atomic_compare_exchange [%a] %a %a"
++        reg arg.(0) reg arg.(1) reg arg.(2)
+   | Ialloc { bytes = n; } ->
+     fprintf ppf "alloc %i" n;
+   | Iintop(op) -> fprintf ppf "%a%s%a" reg arg.(0) (intop op) reg arg.(1)
+diff --git a/asmcomp/riscv/emit.mlp b/asmcomp/riscv/emit.mlp
+index cc42ba581b..63d97b9586 100644
+--- a/asmcomp/riscv/emit.mlp
++++ b/asmcomp/riscv/emit.mlp
+@@ -545,25 +545,22 @@ let emit_instr env i =
+   | Lop (Iatomic_exchange) ->
+       (* amoswap.d.aqrl carries both orderings, same as amoadd below. *)
+       `	amoswap.d.aqrl	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, ({emit_reg i.arg.(0)})\n`
+-  | Lop (Iatomic_cas) ->
+-      (* The canonical sequence from the ISA manual, section 14.3. res.(0)
+-         carries the loaded value, then the sc status, then the result, which
+-         keeps the loop inside the constrained-LR/SC limits: no loads, stores
+-         or backward branches between the lr and the sc.
++  | Lop (Iatomic_compare_exchange) ->
++      (* The canonical sequence from the ISA manual, section 14.3. res.(0) has
++         to hold the loaded value all the way out now that it is the result,
++         so the sc status goes to reg_tmp instead of borrowing res.(0). t1 is
++         above num_available_registers so it is never allocated, and nothing
++         between the lr and the sc loads, stores or branches backwards, which
++         keeps the loop inside the constrained-LR/SC limits.
+          aqrl on the lr and rl on the sc is the seq_cst mapping. The manual
+          warns against rl on an lr without aq, and aq on an sc without rl. *)
+       let lbl = new_label() in
+-      let lbl_fail = new_label() in
+       let lbl_done = new_label() in
+       `{emit_label lbl}:\n`;
+       `	lr.d.aqrl	{emit_reg i.res.(0)}, ({emit_reg i.arg.(0)})\n`;
+-      `	bne	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, {emit_label lbl_fail}\n`;
+-      `	sc.d.rl	{emit_reg i.res.(0)}, {emit_reg i.arg.(2)}, ({emit_reg i.arg.(0)})\n`;
+-      `	bnez	{emit_reg i.res.(0)}, {emit_label lbl}\n`;
+-      `	li	{emit_reg i.res.(0)}, 1\n`;
+-      `	j	{emit_label lbl_done}\n`;
+-      `{emit_label lbl_fail}:\n`;
+-      `	li	{emit_reg i.res.(0)}, 0\n`;
++      `	bne	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, {emit_label lbl_done}\n`;
++      `	sc.d.rl	{emit_reg reg_tmp}, {emit_reg i.arg.(2)}, ({emit_reg i.arg.(0)})\n`;
++      `	bnez	{emit_reg reg_tmp}, {emit_label lbl}\n`;
+       `{emit_label lbl_done}:\n`
+   | Lop (Iatomic_fetch_add) ->
+       (* amoadd.d.aqrl carries both acquire and release ordering, so no
+diff --git a/asmcomp/s390x/emit.mlp b/asmcomp/s390x/emit.mlp
+index f03b9c369c..c72a4cc818 100644
+--- a/asmcomp/s390x/emit.mlp
++++ b/asmcomp/s390x/emit.mlp
+@@ -435,19 +435,15 @@ let emit_instr env i =
+         `{emit_label lbl}:\n`;
+         `	csg	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, 0({emit_reg i.arg.(0)})\n`;
+         `	brc	4, {emit_label lbl}\n`
+-    | Lop(Iatomic_cas) ->
+-        (* csg clobbers its first operand on failure, so the expected value is
+-           copied into res.(0) first, which interference keeps clear of the
+-           arguments. lghi leaves the condition code alone, so the result is
+-           materialised the same way as an integer comparison.
+-           brc 8 is condition code 0, equal and stored. *)
+-        let lbl = new_label() in
++    | Lop(Iatomic_compare_exchange) ->
++        (* csg already reports what it found. On a mismatch it loads the
++           storage value into its first operand, and on a match that operand
++           still holds the expected value, which is the same word. So res.(0)
++           is the answer on both paths and there is nothing left to do.
++           The expected value is copied in first because csg clobbers it, and
++           interference keeps res.(0) clear of the arguments. *)
+         `	lgr	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}\n`;
+-        `	csg	{emit_reg i.res.(0)}, {emit_reg i.arg.(2)}, 0({emit_reg i.arg.(0)})\n`;
+-        `	lghi	{emit_reg i.res.(0)}, 1\n`;
+-        `	brc	8, {emit_label lbl}\n`;
+-        `	lghi	{emit_reg i.res.(0)}, 0\n`;
+-        `{emit_label lbl}:\n`
++        `	csg	{emit_reg i.res.(0)}, {emit_reg i.arg.(2)}, 0({emit_reg i.arg.(0)})\n`
+     | Lop(Iatomic_fetch_add) ->
+         `	laag	{emit_reg i.res.(0)}, {emit_reg i.arg.(1)}, 0({emit_reg i.arg.(0)})\n`
+ 
+diff --git a/asmcomp/schedgen.ml b/asmcomp/schedgen.ml
+index 6123b0bbb7..376b41e872 100644
+--- a/asmcomp/schedgen.ml
++++ b/asmcomp/schedgen.ml
+@@ -190,7 +190,7 @@ method private instr_in_basic_block instr try_nesting =
+ 
+ method is_store = function
+     Istore(_, _, _) -> true
+-  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_cas ->
++  | Iatomic_fetch_add | Iatomic_exchange | Iatomic_compare_exchange ->
+       true  (* atomic read-modify-write *)
+   | Iload {is_atomic = true} -> true
+   | _ -> false
+diff --git a/asmcomp/selectgen.ml b/asmcomp/selectgen.ml
+index a5c9f69081..c51a4d1ced 100644
+--- a/asmcomp/selectgen.ml
++++ b/asmcomp/selectgen.ml
+@@ -87,7 +87,7 @@ let oper_result_type = function
+   | Craise _ -> typ_void
+   | Ccheckbound -> typ_void
+   | Copaque -> typ_val
+-  | Catomic_fetch_add | Catomic_exchange | Catomic_cas -> typ_int
++  | Catomic_fetch_add | Catomic_exchange | Catomic_compare_exchange -> typ_int
+   | Cpoll -> typ_void
+ 
+ (* Infer the size in bytes of the result of an expression whose evaluation
+@@ -328,7 +328,7 @@ method is_simple_expr = function
+       begin match op with
+         (* The following may have side effects *)
+       | Capply _ | Cextcall _ | Calloc | Cstore _ | Craise _ | Copaque
+-      | Catomic_fetch_add | Catomic_exchange | Catomic_cas | Cpoll -> false
++      | Catomic_fetch_add | Catomic_exchange | Catomic_compare_exchange | Cpoll -> false
+         (* The remaining operations are simple if their args are *)
+       | Cload _ | Caddi | Csubi | Cmuli | Cmulhi | Cdivi | Cmodi | Cand | Cor
+       | Cxor | Clsl | Clsr | Casr | Ccmpi _ | Caddv | Cadda | Ccmpa _ | Cnegf
+@@ -370,7 +370,7 @@ method effects_of exp =
+     let from_op =
+       match op with
+       | Capply _ | Cextcall _ | Copaque | Catomic_fetch_add
+-      | Catomic_exchange | Catomic_cas
++      | Catomic_exchange | Catomic_compare_exchange
+       | Cpoll -> EC.arbitrary
+       | Calloc -> EC.none
+       | Cstore _ -> EC.effect_only Effect.Arbitrary
+@@ -440,7 +440,7 @@ method select_operation op args _dbg =
+       end
+   | (Catomic_fetch_add, _) -> Iatomic_fetch_add, args
+   | (Catomic_exchange, _) -> Iatomic_exchange, args
+-  | (Catomic_cas, _) -> Iatomic_cas, args
++  | (Catomic_compare_exchange, _) -> Iatomic_compare_exchange, args
+   | (Cdls_get, _) -> Idls_get, args
+   | (Cpoll, _) -> (Ipoll { return_label = None }), args
+   | (Calloc, _) -> (Ialloc {bytes = 0; dbginfo = []}), args
+diff --git a/asmcomp/thread_sanitizer.ml b/asmcomp/thread_sanitizer.ml
+index a86111597f..65a38119b6 100644
+--- a/asmcomp/thread_sanitizer.ml
++++ b/asmcomp/thread_sanitizer.ml
+@@ -150,7 +150,7 @@ let wrap_entry_exit expr =
+             | Caddf | Csubf | Cmulf | Cdivf | Cfloatofint | Cintoffloat
+             | Ccheckbound | Copaque | Cdls_get | Cpoll | Capply _ | Cextcall _
+             | Cload _ | Cstore _ | Ccmpi _ | Ccmpa _ | Ccmpf _ | Craise _
+-            | Catomic_fetch_add | Catomic_exchange | Catomic_cas ),
++            | Catomic_fetch_add | Catomic_exchange | Catomic_compare_exchange ),
+             _,
+             _ )
+       | Cconst_int (_, _)
+@@ -287,10 +287,11 @@ let instrument body =
+     | Cop (Catomic_fetch_add, _, _) ->
+       invalid_arg
+         "instrument: wrong number of arguments for operation Catomic_fetch_add"
+-    | Cop ((Catomic_exchange | Catomic_cas), _, _) ->
++    | Cop ((Catomic_exchange | Catomic_compare_exchange), _, _) ->
+       (* cmmgen keeps the runtime call under TSan, which carries its own
+          instrumentation, so these never reach here. *)
+-      invalid_arg "instrument: native atomic exchange/cas under TSan"
++      invalid_arg
++        "instrument: native atomic exchange/compare-exchange under TSan"
+     | Cop
+         ( (( Capply _ | Caddi | Calloc | Csubi | Cmuli | Cmulhi | Cdivi | Cmodi
+            | Cand | Cor | Cxor | Clsl | Clsr | Casr | Caddv | Cadda | Cnegf
+-- 
+2.51.0.windows.2
+

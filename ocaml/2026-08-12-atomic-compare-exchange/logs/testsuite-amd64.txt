@@ -1,0 +1,14 @@
+Full upstream testsuite, amd64, branch tree.
+
+    tests/unwind
+    tests/weak-ephe-final/weaklifetime_par.ml
+    tests/win-unicode
+
+Summary:
+  1618 tests passed
+    54 tests skipped
+     0 tests failed
+     0 tests not started (parent test skipped or failed)
+     0 unexpected errors
+  1672 tests considered
+make[1]: Leaving directory '/root/ocaml-atomic/testsuite'

@@ -1,0 +1,299 @@
+Compare-and-set codegen, before and after making compare-exchange the primitive.
+
+Source (src/cas_shapes.ml):
+
+    let r = Atomic.make 0
+    
+    (* boolean consumed by a branch, the common shape *)
+    let branchy () = if Atomic.compare_and_set r 1 2 then 10 else 20
+    
+    (* boolean materialised as a value *)
+    let valued () = Atomic.compare_and_set r 3 4
+
+branchy() is the shape real code uses, where the boolean feeds a branch.
+Assembler directives, CFI and the arm64 instruction-length assertions are
+stripped for readability. Full unedited output is in asm/.
+
+================================================================
+  amd64  --  branchy ()
+================================================================
+
+---- before ----
+camlCas_shapes.branchy_301:
+.L101:
+	movq	caml_num_domains_running@GOTPCREL(%rip), %rbx
+	movl	$5, %edi
+	movl	$3, %eax
+	movq	camlCas_shapes@GOTPCREL(%rip), %rsi
+	movq	(%rsi), %rsi
+	cmpq	$1, (%rbx)
+	jne	.L102
+	movq	(%rsi), %rdx
+	cmpq	%rdx, %rax
+	jne	.L103
+	movq	%rdi, (%rsi)
+	jmp	.L103
+.L102:
+	lock cmpxchgq	%rdi, (%rsi)
+.L103:
+	sete	%al
+	movzbq	%al, %rax
+	testq	%rax, %rax
+	je	.L100
+	movl	$21, %eax
+	ret
+.L100:
+	movl	$41, %eax
+	ret
+
+---- after ----
+camlCas_shapes.branchy_301:
+.L101:
+	movq	caml_num_domains_running@GOTPCREL(%rip), %rbx
+	movl	$5, %edi
+	movl	$3, %eax
+	movq	camlCas_shapes@GOTPCREL(%rip), %rsi
+	movq	(%rsi), %rsi
+	cmpq	$1, (%rbx)
+	jne	.L102
+	movq	(%rsi), %rdx
+	cmpq	%rdx, %rax
+	jne	.L103
+	movq	%rdi, (%rsi)
+.L103:
+	movq	%rdx, %rax
+	jmp	.L104
+.L102:
+	lock cmpxchgq	%rdi, (%rsi)
+.L104:
+	cmpq	$3, %rax
+	jne	.L100
+	movl	$21, %eax
+	ret
+.L100:
+	movl	$41, %eax
+	ret
+
+================================================================
+  arm64  --  branchy ()
+================================================================
+
+---- before ----
+camlCas_shapes.branchy_301:
+.L102:
+.L103:
+.L101:
+.L104:
+	movz	x1, #5, lsl #0
+.L105:
+	orr	x2, xzr, #3
+.L106:
+	adrp	x3, :got:camlCas_shapes
+	ldr	x3, [x3, #:got_lo12:camlCas_shapes]
+.L107:
+	ldr	x4, [x3, #0]
+.L108:
+.L109:
+	ldaxr	x5, [x4]
+	cmp	x5, x2
+	b.ne	.L110
+	stlxr	w17, x1, [x4]
+	cbnz	w17, .L109
+	b	.L111
+.L110:
+	clrex
+.L111:
+	cset	x5, eq
+	dmb	ishst
+.L112:
+	cbz	x5, .L100
+.L113:
+	movz	x0, #21, lsl #0
+
+---- after ----
+camlCas_shapes.branchy_301:
+.L102:
+.L103:
+.L101:
+.L104:
+	movz	x1, #5, lsl #0
+.L105:
+	orr	x2, xzr, #3
+.L106:
+	adrp	x3, :got:camlCas_shapes
+	ldr	x3, [x3, #:got_lo12:camlCas_shapes]
+.L107:
+	ldr	x4, [x3, #0]
+.L108:
+.L109:
+	ldaxr	x5, [x4]
+	cmp	x5, x2
+	b.ne	.L110
+	stlxr	w17, x1, [x4]
+	cbnz	w17, .L109
+	b	.L111
+.L110:
+	clrex
+.L111:
+	dmb	ishst
+.L112:
+	cmp	x5, #3
+	b.ne	.L100
+.L113:
+	movz	x0, #21, lsl #0
+
+================================================================
+  riscv  --  branchy ()
+================================================================
+
+---- before ----
+camlCas_shapes.branchy_301:
+.L101:
+	li	a1, 5
+	li	a2, 3
+	la	a3, camlCas_shapes
+	ld	a4, 0(a3)
+.L102:
+	lr.d.aqrl	a5, (a4)
+	bne	a5, a2, .L103
+	sc.d.rl	a5, a1, (a4)
+	bnez	a5, .L102
+	li	a5, 1
+	j	.L104
+.L103:
+	li	a5, 0
+.L104:
+	beqz	a5, .L100
+	li	a0, 21
+	ret
+.L100:
+	li	a0, 41
+	ret
+
+---- after ----
+camlCas_shapes.branchy_301:
+.L101:
+	li	a0, 5
+	li	a1, 3
+	la	a2, camlCas_shapes
+	ld	a2, 0(a2)
+.L102:
+	lr.d.aqrl	a3, (a2)
+	bne	a3, a1, .L103
+	sc.d.rl	t1, a0, (a2)
+	bnez	t1, .L102
+.L103:
+	li	a0, 3
+	bne	a3, a0, .L100
+	li	a0, 21
+	ret
+.L100:
+	li	a0, 41
+	ret
+
+================================================================
+  power  --  branchy ()
+================================================================
+
+---- before ----
+camlCas_shapes.branchy_301:
+0:	addis	2, 12, (.TOC. - 0b)@ha
+	addi	2, 2, (.TOC. - 0b)@l
+.L101:
+	addis	11, 2, .L102@toc@ha
+	ld	11, .L102@toc@l(11) # camlCas_shapes
+	ld	6, 0(11)
+	li	5, 3
+	li	4, 5
+	sync
+.L103:
+	ldarx	0, 0, 6
+	cmpd	0, 5
+	bne-	.L104
+	stdcx.	4, 0, 6
+	bne-	.L103
+	li	7, 1
+	b	.L105
+.L104:
+	li	7, 0
+.L105:
+	isync
+	lwsync
+	cmpdi	7, 0
+	beq	.L100
+	li	3, 21
+	blr
+.L100:
+	li	3, 41
+	blr
+
+---- after ----
+camlCas_shapes.branchy_301:
+0:	addis	2, 12, (.TOC. - 0b)@ha
+	addi	2, 2, (.TOC. - 0b)@l
+.L101:
+	addis	11, 2, .L102@toc@ha
+	ld	11, .L102@toc@l(11) # camlCas_shapes
+	ld	6, 0(11)
+	li	5, 3
+	li	4, 5
+	sync
+.L103:
+	ldarx	7, 0, 6
+	cmpd	7, 5
+	bne-	.L104
+	stdcx.	4, 0, 6
+	bne-	.L103
+.L104:
+	isync
+	lwsync
+	cmpdi	7, 3
+	bne	.L100
+	li	3, 21
+	blr
+.L100:
+	li	3, 41
+	blr
+
+================================================================
+  s390x  --  branchy ()
+================================================================
+
+---- before ----
+camlCas_shapes.branchy_301:
+.L101:
+	lghi	%r3, 5
+	lghi	%r4, 3
+	lgrl	%r5, camlCas_shapes@GOT
+	lg	%r6, 0(%r5)
+	lgr	%r7, %r4
+	csg	%r7, %r3, 0(%r6)
+	lghi	%r7, 1
+	brc	8, .L102
+	lghi	%r7, 0
+.L102:
+	cgfi	%r7, 0
+	brcl	8, .L100
+	lghi	%r2, 21
+	br	%r14
+.L100:
+	lghi	%r2, 41
+	br	%r14
+
+---- after ----
+camlCas_shapes.branchy_301:
+.L101:
+	lghi	%r3, 5
+	lghi	%r4, 3
+	lgrl	%r5, camlCas_shapes@GOT
+	lg	%r6, 0(%r5)
+	lgr	%r7, %r4
+	csg	%r7, %r3, 0(%r6)
+	cgfi	%r7, 3
+	brcl	7, .L100
+	lghi	%r2, 21
+	br	%r14
+.L100:
+	lghi	%r2, 41
+	br	%r14
+

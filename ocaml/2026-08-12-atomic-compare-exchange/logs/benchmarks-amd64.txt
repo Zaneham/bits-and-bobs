@@ -1,0 +1,65 @@
+amd64 benchmarks. Baseline is atomic-cas-trunk (#14980 as it stands),
+branch is the same tree with compare-exchange as the primitive. Both
+compilers built from the same checkout on the same machine.
+
+Three harnesses, because the first two disagreed and I would rather show
+that than pick the flattering one. The short version is that the branch
+is stable at about 0.45 ns for the discarded-boolean shape in all three,
+while the baseline swings between 0.37 and 0.48 depending on harness, so
+that shape is layout luck rather than a real difference. The shape that
+actually changed is the one where the boolean feeds a branch.
+
+#################### 1. bench_cas.ml, the #14575 harness ####################
+100M iters, 9 reps, min and median. This is the harness the reviewers
+asked for on #14575. It is also the one where the baseline gets lucky.
+
+-------- baseline --------
+atomic exchange / compare_and_set (100000000 iters, 9 reps)
+----------------------------------------------------------------------------
+  exchange, single domain            min  0.43  median  0.44  ns/op  (9/9 samples)
+  cas, single domain                 min  0.38  median  0.39  ns/op  (9/9 samples)
+  exchange, 2 domains, contended     min  7.32  median  7.74  ns/op  (9/9 samples)
+  cas, 2 domains, contended          min  4.44  median  4.55  ns/op  (9/9 samples)
+  exchange, 2 domains, uncontended   min  0.76  median  0.78  ns/op  (9/9 samples)
+  cas, 2 domains, uncontended        min  0.86  median  0.88  ns/op  (9/9 samples)
+  exchange, boxed (stays a C call)   min  1.41  median  1.43  ns/op  (9/9 samples)
+----------------------------------------------------------------------------
+done.
+
+-------- branch --------
+atomic exchange / compare_and_set (100000000 iters, 9 reps)
+----------------------------------------------------------------------------
+  exchange, single domain            min  0.43  median  0.44  ns/op  (9/9 samples)
+  cas, single domain                 min  0.46  median  0.48  ns/op  (9/9 samples)
+  exchange, 2 domains, contended     min  6.97  median  7.52  ns/op  (9/9 samples)
+  cas, 2 domains, contended          min  4.47  median  4.56  ns/op  (9/9 samples)
+  exchange, 2 domains, uncontended   min  0.74  median  0.76  ns/op  (9/9 samples)
+  cas, 2 domains, uncontended        min  0.80  median  0.81  ns/op  (9/9 samples)
+  exchange, boxed (stays a C call)   min  1.39  median  1.41  ns/op  (9/9 samples)
+----------------------------------------------------------------------------
+done.
+
+#################### 2. shapes_bench.ml, discard vs branch ####################
+200M iters, best of 5. Same cas loop as above, plus the variant where
+the boolean is consumed by a branch. Three interleaved rounds.
+
+round1 base  discard  0.449 ns/op branchy  0.649 ns/op 
+round1 new   discard  0.427 ns/op branchy  0.590 ns/op 
+round2 base  discard  0.456 ns/op branchy  0.661 ns/op 
+round2 new   discard  0.461 ns/op branchy  0.585 ns/op 
+round3 base  discard  0.465 ns/op branchy  0.663 ns/op 
+round3 new   discard  0.465 ns/op branchy  0.581 ns/op 
+
+#################### 3. micro.ml, tight standalone loop ####################
+200M iterations of two discarded cas, no harness around it, wall clock.
+
+base  0m0.195s
+new   0m0.177s
+base  0m0.196s
+new   0m0.176s
+base  0m0.189s
+new   0m0.176s
+base  0m0.191s
+new   0m0.178s
+base  0m0.191s
+new   0m0.176s
