@@ -33,8 +33,6 @@ behaves identically, so this is upstream's position and not the PR's doing.
 `logs/be-c_call-skip-reason.txt` shows the skip is on `native`, not on
 `frame_pointers`.
 
-Worth saying on the PR, since Tim raised big-endian as an open question he
-had no machine for.
 
 ## Files
 
