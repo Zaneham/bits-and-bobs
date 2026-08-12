@@ -77,10 +77,10 @@ This repository will feature heavy LLM usage. It shows generated tests and some 
 
 - Qwen coder
 - Chatgpt
-- Claude code (when credits allow)
+- Claude code
 - Deepseek 
 
-All feature here. 
+All feature here. I'm currently exploring some frontier models (woohoo! Full time job means I can afford a subscription no more povo student). 
 
 ## Thanks! 
 
