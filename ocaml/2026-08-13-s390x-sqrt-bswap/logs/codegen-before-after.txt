@@ -1,0 +1,72 @@
+Codegen before and after, s390x.
+
+Before is trunk, after is the branch. Directives and CFI stripped.
+
+======== sq.ml, before ========
+52:	brasl	%r14, sqrt@PLT
+171:	brasl	%r14, caml_initialize@PLT
+180:	brasl	%r14, sqrt@PLT
+187:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+208:	brasl	%r14, sqrt@PLT
+215:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+236:	brasl	%r14, sqrt@PLT
+243:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+264:	brasl	%r14, sqrt@PLT
+272:	sllg	%r8, %r7,1(%r0)
+278:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+292:	brasl	%r14, sqrt@PLT
+303:	sllg	%r2, %r12,1(%r0)
+308:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+
+======== sq.ml, after ========
+54:	sqdbr	%f2, %f0
+166:	brasl	%r14, caml_initialize@PLT
+171:	sqdbr	%f2, %f0
+176:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+193:	sqdbr	%f6, %f4
+198:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+215:	sqdbr	%f3, %f1
+220:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+237:	sqdbr	%f7, %f5
+243:	sllg	%r8, %r7,1(%r0)
+249:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+259:	sqdbr	%f10, %f8
+265:	sllg	%r2, %r12,1(%r0)
+270:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+
+======== bs2.ml, before ========
+94:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+343:	brasl	%r14, caml_initialize@PLT
+353:	brasl	%r14, caml_initialize@PLT
+362:	brasl	%r14, caml_bswap16_direct@PLT
+365:	sllg	%r12, %r2,1(%r0)
+369:	brasl	%r14, camlBs2.check_361@PLT
+377:	brasl	%r14, caml_bswap16_direct@PLT
+380:	sllg	%r8, %r2,1(%r0)
+384:	brasl	%r14, camlBs2.check_361@PLT
+392:	brasl	%r14, caml_bswap16_direct@PLT
+395:	sllg	%r6, %r2,1(%r0)
+399:	brasl	%r14, camlBs2.check_361@PLT
+407:	brasl	%r14, caml_bswap16_direct@PLT
+410:	sllg	%r4, %r2,1(%r0)
+414:	brasl	%r14, camlBs2.check_361@PLT
+422:	brasl	%r14, caml_bswap16_direct@PLT
+
+======== bs2.ml, after ========
+94:	brasl	%r14, camlStdlib__Printf.fprintf_433@PLT
+343:	brasl	%r14, caml_initialize@PLT
+353:	brasl	%r14, caml_initialize@PLT
+358:	sllg	%r9, %r8, 48(%r0)
+359:	lrvgr	%r9, %r9
+360:	sllg	%r12, %r9,1(%r0)
+364:	brasl	%r14, camlBs2.check_361@PLT
+368:	sllg	%r7, %r6, 48(%r0)
+369:	lrvgr	%r7, %r7
+370:	sllg	%r8, %r7,1(%r0)
+374:	brasl	%r14, camlBs2.check_361@PLT
+378:	sllg	%r5, %r4, 48(%r0)
+379:	lrvgr	%r5, %r5
+380:	sllg	%r6, %r5,1(%r0)
+384:	brasl	%r14, camlBs2.check_361@PLT
+388:	sllg	%r3, %r2, 48(%r0)
+

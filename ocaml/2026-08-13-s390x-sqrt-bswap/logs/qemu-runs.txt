@@ -1,0 +1,26 @@
+qemu-s390x runs, cross-compiled. Baseline calls into C, branch does not.
+
+==== C calls in the baseline object ====
+8
+==== C calls in the branch object (want 0) ====
+0
+
+==== baseline output ====
+bswap16 ABCD   ok
+bswap16 00FF   ok
+bswap16 0000   ok
+bswap16 FFFF   ok
+bswap16 dirty  ok
+bswap32 pos    2018915346
+bswap32 neg    -16777216
+bswap64        -1167088121787636991
+
+==== branch output ====
+bswap16 ABCD   ok
+bswap16 00FF   ok
+bswap16 0000   ok
+bswap16 FFFF   ok
+bswap16 dirty  ok
+bswap32 pos    2018915346
+bswap32 neg    -16777216
+bswap64        -1167088121787636991

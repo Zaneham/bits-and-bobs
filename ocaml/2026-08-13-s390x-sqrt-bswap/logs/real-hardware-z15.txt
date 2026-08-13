@@ -1,0 +1,48 @@
+Real hardware run, IBM z15, 2 cores.
+
+Cloned upstream trunk at 8cdc85c9db, applied the patch in patches/, built
+world.opt on the machine itself, then compiled and ran the test programs and
+the full upstream testsuite.
+
+=== patch applied ===
+=== BUILT ON REAL Z15 ===
+
+=== instruction sites emitted (sqdbr, lrvgr, lrvr, sllg 48) ===
+13
+
+=== C calls remaining (want 0) ===
+0
+
+=== bswap on real hardware ===
+bswap16 ABCD   ok
+bswap16 00FF   ok
+bswap16 0000   ok
+bswap16 FFFF   ok
+bswap16 dirty  ok
+bswap32 pos    2018915346
+bswap32 neg    -16777216
+bswap64        -1167088121787636991
+
+=== sqrt on real hardware ===
+1.414214
+0.000000
+999999999999999980835596172437374590573120014030318793091164810154100112203678582976298268616221151962702060266176005440567032331208403948233373515776.000000
+true
+true
+
+The sqrt lines are, in order, sqrt 2.0, sqrt 0.0, sqrt 1e300, then
+Float.is_nan (sqrt (-1.0)) and sqrt infinity = infinity.
+
+"bswap16 dirty" is bswap16 0x1234ABCD. It checks that bits above the halfword
+do not leak into the result, which is the case the sllg/lrvgr pairing exists to
+handle.
+
+=== full testsuite ===
+
+Summary:
+  1616 tests passed
+    56 tests skipped
+     0 tests failed
+     0 tests not started (parent test skipped or failed)
+     0 unexpected errors
+  1672 tests considered
