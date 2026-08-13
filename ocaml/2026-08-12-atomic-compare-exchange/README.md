@@ -14,9 +14,9 @@ into a boolean and threw the value away. So the instruction returns what it
 found, and `compare_and_set` becomes that value tested against the expected
 one, as a `Ccmpi Ceq` in cmmgen. One Cmm operation instead of two.
 
-*NOTE:* the prose in this entry was drafted by Claude Code and reviewed by me.
-The code, the runs and the numbers are real and reproducible from `src/` and
-`patches/`. Questions welcome.
+*NOTE:* this document is thrown together with Claude Code and heavily edited by
+me. Claude also assisted with organising all the output and tests I made into
+this section. Questions welcome.
 
 ## What's worth looking at
 
