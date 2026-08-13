@@ -1,0 +1,979 @@
+
+######################################################################################################################
+
+Deepseek chatlogs dated around 04/25 
+
+
+This was me messing around with CSS and React trying to make a dashboard. 
+
+
+######################################################################################################################
+
+
+
+
+
+Me: Why is this happening? I'm using react and demo dashboard.css and .tsx aint working. Heres the full code: import { useState } from 'react';
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
+import './DemoDashboard.css';
+
+export default function DemoDashboard() {
+  const [invoices] = useState([
+    { id: 1, customer: 'Acme Ltd', currency: 'USD', amount: 1200 },
+    { id: 2, customer: 'Globex', currency: 'EUR', amount: 800 },
+    { id: 3, customer: 'Initech', currency: 'NZD', amount: 1500 },
+  ]);
+
+  const exposureData = [
+    { name: 'USD', value: 1200 },
+    { name: 'EUR', value: 800 },
+    { name: 'NZD', value: 1500 },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+
+  return (
+    <div className="dashboard">
+      <h1>Demo Dashboard — Zane Debug</h1>
+      <div className="sections">
+        <section className="invoices">
+          <h2>Invoices</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Currency</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map(inv => (
+                <tr key={inv.id}>
+                  <td>{inv.id}</td>
+                  <td>{inv.customer}</td>
+                  <td>{inv.currency}</td>
+                  <td>{inv.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        <section className="charts">
+          <h2>Exposure by Currency</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={exposureData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={120}  // bumped for visual balance
+                fill="#8884d8"
+                label
+              >
+                {exposureData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </section>
+      </div>
+    </div>
+  );
+} and .dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* centers the .sections block itself */
+  min-height: 100vh;
+  padding: 2rem;
+  background: #f9fafb;
+}
+
+.invoices, .charts {
+  width: 100%;
+  max-width: 800px;      /* keeps content from stretching too wide */
+  margin-bottom: 2rem;
+}
+
+.invoices table {
+  width: 100%;
+  max-width: 480px;   /* prevents full stretch */
+  margin: 0 auto;     /* centers the table inside its card */
+}
+
+
+.invoices th, .invoices td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.invoices th {
+  background: #f4f4f4;
+}
+
+.sections > section {
+   
+  border: 2px dashed red;
+  flex: 1 1 400px;
+  max-width: 500px;
+  margin: 0 auto; /* ✅ centers each card if it doesn’t fill the row */
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+
+
+.sections > section {
+  flex: 1 1 400px;
+  max-width: 500px;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+Deepseek: Looking at your code, I can see the issue! The problem is with your CSS structure and how the sections are being laid out. You have conflicting CSS rules and the flexbox layout isn't properly configured for the sections container.
+
+Here's the corrected code:
+
+DemoDashboard.tsx (fixed):
+
+tsx
+import { useState } from 'react';
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
+import './DemoDashboard.css';
+
+export default function DemoDashboard() {
+  const [invoices] = useState([
+    { id: 1, customer: 'Acme Ltd', currency: 'USD', amount: 1200 },
+    { id: 2, customer: 'Globex', currency: 'EUR', amount: 800 },
+    { id: 3, customer: 'Initech', currency: 'NZD', amount: 1500 },
+  ]);
+
+  const exposureData = [
+    { name: 'USD', value: 1200 },
+    { name: 'EUR', value: 800 },
+    { name: 'NZD', value: 1500 },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
+
+  return (
+    <div className="dashboard">
+      <h1>Demo Dashboard — Zane Debug</h1>
+      <div className="sections">
+        <section className="invoices">
+          <h2>Invoices</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Currency</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map(inv => (
+                <tr key={inv.id}>
+                  <td>{inv.id}</td>
+                  <td>{inv.customer}</td>
+                  <td>{inv.currency}</td>
+                  <td>{inv.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        <section className="charts">
+          <h2>Exposure by Currency</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={exposureData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={120}
+                fill="#8884d8"
+                label
+              >
+                {exposureData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </section>
+      </div>
+    </div>
+  );
+}
+DemoDashboard.css (fixed):
+
+css
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: #f9fafb;
+}
+
+.sections {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.invoices, .charts {
+  flex: 1;
+  min-width: 400px;
+  max-width: 500px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border: 2px dashed red; /* Remove this in production */
+}
+
+.invoices table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.invoices th, .invoices td {
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.invoices th {
+  background: #f4f4f4;
+  font-weight: 600;
+}
+
+.charts h2 {
+  margin-bottom: 1rem;
+}
+
+.dashboard h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333;
+}
+Key changes made:
+
+Added .sections container styling: Added display: flex, flex-wrap: wrap, justify-content: center, and gap to properly layout the sections side by side.
+
+Fixed conflicting CSS: Removed duplicate .sections > section rules and consolidated them into the .invoices, .charts selector.
+
+Improved table styling: Added border-collapse: collapse and better padding for the table.
+
+Better responsive design: The sections will now wrap properly on smaller screens and center themselves.
+
+Cleaner structure: Removed the margin: 0 auto conflicts that were causing layout issues.
+
+The main issue was that your .sections container wasn't defined as a flex container, so the individual sections couldn't properly align side by side. The CSS also had conflicting rules that were overriding each other.
+
+This should fix your layout and make both the invoices table and pie chart display properly side by side!
+
+
+Me: It's still only on the left side why is that? is there just not enough in the site for now?
+
+
+
+
+Deepseek: You're absolutely right! The issue is that there's not enough content width to push the second section to the right side. Your sections are only 400-500px wide each, but with the current layout, they're stacking vertically because the container isn't wide enough to fit them side by side.
+
+Here are a few solutions:
+
+Option 1: Make the sections narrower so they can fit side by side
+
+css
+.sections {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.invoices, .charts {
+  flex: 1;
+  min-width: 350px;  /* Reduced from 400px */
+  max-width: 450px;  /* Reduced from 500px */
+  /* rest of your styles */
+}
+Option 2: Remove the min-width constraint and let them flex naturally
+
+css
+.invoices, .charts {
+  flex: 1;
+  min-width: 300px;  /* Much smaller min-width */
+  max-width: 500px;
+  /* rest of your styles */
+}
+Option 3: Force two-column layout (recommended)
+
+css
+.sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.invoices, .charts {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  /* Remove flex, min-width, max-width */
+}
+Option 4: Check if you have enough viewport width
+If you're developing on a very narrow screen or browser window, try:
+
+Zooming out (Ctrl + -)
+
+Making your browser window wider
+
+Testing on a larger screen
+
+The grid solution (Option 3) is probably your best bet as it will guarantee two columns regardless of content size.
+
+Are you testing on a mobile device or very narrow browser window? That would definitely cause the sections to stack vertically even with the correct CSS.
+
+I messed up anyway you can help fix import { useState, useEffect } from 'react';
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis
+} from 'recharts';
+import './DemoDashboard.css';
+import ScenarioPanel from './ScenarioPanel';
+
+// --- Types & Initial Data ---
+type Invoice = {
+  id: number;
+  customer: string;
+  currency: string;
+  amount: number;
+  dueDate: string;
+};
+
+const initialInvoices: Invoice[] = [
+  { id: 1001, customer: 'Ackeran Pty', currency: 'USD', amount: 2500, dueDate: '2025-11-01' },
+  { id: 1002, customer: 'NumberJuan Ltd', currency: 'EUR', amount: 3000, dueDate: '2025-11-15' },
+  { id: 1003, customer: 'Bitscorp Ltd', currency: 'GBP', amount: 300, dueDate: '2025-12-01' },
+  // ...rest of your invoices
+];
+
+// --- Component ---
+export default function DemoDashboard() {
+  const [viewMode, setViewMode] = useState<'invoice' | 'currency'>('invoice');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const [auditLog, setAuditLog] = useState<string[]>([]);
+  const [chartView, setChartView] = useState<'pie' | 'bar'>('pie');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  // helper to log actions
+  const addAuditEntry = (msg: string) => {
+    setAuditLog(prev => [...prev, `${new Date().toLocaleString()} — ${msg}`]);
+  };
+
+  // Aggregate exposure by currency
+  const exposureByCurrency = invoices.reduce<Record<string, { total: number; earliest: string }>>(
+    (acc, inv) => {
+      if (!acc[inv.currency]) {
+        acc[inv.currency] = { total: 0, earliest: inv.dueDate };
+      }
+      acc[inv.currency].total += inv.amount;
+      if (new Date(inv.dueDate) < new Date(acc[inv.currency].earliest)) {
+        acc[inv.currency].earliest = inv.dueDate;
+      }
+      return acc;
+    },
+    {}
+  );
+
+  // Derive exposure data for charts
+  const exposureData = Object.entries(exposureByCurrency).map(([currency, data]) => ({
+    name: currency,
+    value: data.total,
+  }));
+
+  const fxRates = [
+    { pair: 'USD/NZD', locked: 0.65, market: 0.64 },
+    { pair: 'EUR/NZD', locked: 0.72, market: 0.71 },
+    { pair: 'GBP/NZD', locked: 0.58, market: 0.60 },
+    { pair: 'AUD/NZD', locked: 1.08, market: 1.07 },
+    { pair: 'JPY/NZD', locked: 95.2, market: 94.8 },
+    { pair: 'CAD/NZD', locked: 0.89, market: 0.88 },
+  ];
+
+  const COLORS = ['#2563eb', '#00C49F', '#FFBB28', '#FF4C4C', '#A855F7', '#F97316'];
+
+  // Example canned scenarios
+  const scenarios = [
+    {
+      id: 'usd_drop',
+      label: 'USD drops 10%',
+      adjust: (inv: Invoice) =>
+        inv.currency === 'USD' ? { ...inv, amount: inv.amount * 1.1 } : inv,
+    },
+    {
+      id: 'eur_delay',
+      label: 'EUR invoices delayed 30 days',
+      adjust: (inv: Invoice) =>
+        inv.currency === 'EUR'
+          ? {
+              ...inv,
+              dueDate: new Date(new Date(inv.dueDate).getTime() + 30 * 86400000)
+                .toISOString()
+                .split('T')[0],
+            }
+          : inv,
+    },
+  ];
+
+  const exposureData = Object.entries(exposureByCurrency).map(([currency, data]) => ({
+    name: currency,
+    value: data.total,
+  }));
+
+  return (
+  <>
+    <header className="app-header">
+      <div className="logo">FX Risk Console</div>
+      <button
+        className="theme-toggle"
+        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+      >
+        {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+      </button>
+    </header>
+
+    <div className="page">
+      <div className="dashboard">
+        <h1>Demo Dashboard</h1>
+
+        <div className="sections">
+          {/* Invoices Section */}
+          <section className="invoices">
+            <h2>Invoices</h2>
+            <div className="view-toggle">
+              <button onClick={() => setViewMode('invoice')} disabled={viewMode === 'invoice'}>
+                View by Invoice
+              </button>
+              <button onClick={() => setViewMode('currency')} disabled={viewMode === 'currency'}>
+                View by Currency
+              </button>
+            </div>
+
+            {viewMode === 'invoice' ? (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Invoice ID</th>
+                    <th>Customer</th>
+                    <th>Currency</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoices.map(inv => (
+                    <tr key={inv.id}>
+                      <td>{inv.id}</td>
+                      <td>{inv.customer}</td>
+                      <td>{inv.currency}</td>
+                      <td>{inv.amount}</td>
+                      <td>{inv.dueDate}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Currency</th>
+                    <th>Total Exposure</th>
+                    <th>Earliest Due</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(exposureByCurrency).map(([currency, data]) => (
+                    <tr key={currency}>
+                      <td>{currency}</td>
+                      <td>{data.total}</td>
+                      <td>{data.earliest}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </section>
+
+          {/* Exposure + FX Meter Section */}
+          {/* your FX Meter and Exposure chart code stays unchanged, just make sure exposureData is derived from invoices */}
+
+          {/* Scenario Simulator Section */}
+          <section className="scenario-section">
+            <h2>Scenario Simulator</h2>
+            <p className="scenario-explainer">
+              Select invoices or switch to currency view to simulate your exposure. 
+              You can also run canned “what‑if” scenarios to show shifts in FX rates 
+              or payment delays would affect totals. Export results to CSV for further analysis.
+            </p>
+
+            <div className="scenario-buttons">
+              <button
+                onClick={() => {
+                  const updated = invoices.map(inv =>
+                    inv.currency === 'USD' ? { ...inv, amount: inv.amount * 1.1 } : inv
+                  );
+                  setInvoices(updated);
+                  addAuditEntry("Scenario run: USD drops 10%");
+                }}
+              >
+                USD drops 10%
+              </button>
+
+              <button
+                onClick={() => {
+                  const updated = invoices.map(inv =>
+                    inv.currency === 'EUR'
+                      ? {
+                          ...inv,
+                          dueDate: new Date(
+                            new Date(inv.dueDate).getTime() + 30 * 86400000
+                          )
+                            .toISOString()
+                            .split('T')[0],
+                        }
+                      : inv
+                  );
+                  setInvoices(updated);
+                  addAuditEntry("Scenario run: EUR invoices delayed 30 days");
+                }}
+              >
+                EUR invoices delayed 30 days
+              </button>
+
+              <button
+                onClick={() => {
+                  setInvoices(initialInvoices);
+                  addAuditEntry("Scenarios reset to baseline");
+                }}
+              >
+                Reset Scenarios
+              </button>
+            </div>
+
+            <ScenarioPanel invoices={invoices} />
+          </section>
+
+          {/* Audit Trail Section */}
+          <section className="audit-section">
+            <h2>Audit Trail</h2>
+            <p className="audit-explainer">
+              Every action is logged here for transparency — invoice changes, scenario runs, 
+              FX refreshes, and exports. This ensures a clear, auditable history of decisions.
+            </p>
+            <ul className="audit-trail">
+              {auditLog.map((entry, idx) => (
+                <li key={idx}>{entry}</li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </>
+);
+}
+I can see several issues in your code. Let me help you fix them:
+
+Main Issues:
+
+Duplicate exposureData variable declaration
+
+Missing FX Meter and Exposure chart sections
+
+Some incomplete sections
+
+CSS class names might not match
+
+Here's the corrected code:
+
+tsx
+import { useState, useEffect } from 'react';
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid
+} from 'recharts';
+import './DemoDashboard.css';
+import ScenarioPanel from './ScenarioPanel';
+
+// --- Types & Initial Data ---
+type Invoice = {
+  id: number;
+  customer: string;
+  currency: string;
+  amount: number;
+  dueDate: string;
+};
+
+const initialInvoices: Invoice[] = [
+  { id: 1001, customer: 'Ackeran Pty', currency: 'USD', amount: 2500, dueDate: '2025-11-01' },
+  { id: 1002, customer: 'NumberJuan Ltd', currency: 'EUR', amount: 3000, dueDate: '2025-11-15' },
+  { id: 1003, customer: 'Bitscorp Ltd', currency: 'GBP', amount: 300, dueDate: '2025-12-01' },
+  // Add more invoices as needed
+];
+
+// --- Component ---
+export default function DemoDashboard() {
+  const [viewMode, setViewMode] = useState<'invoice' | 'currency'>('invoice');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const [auditLog, setAuditLog] = useState<string[]>([]);
+  const [chartView, setChartView] = useState<'pie' | 'bar'>('pie');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  // Helper to log actions
+  const addAuditEntry = (msg: string) => {
+    setAuditLog(prev => [...prev, `${new Date().toLocaleString()} — ${msg}`]);
+  };
+
+  // Aggregate exposure by currency
+  const exposureByCurrency = invoices.reduce<Record<string, { total: number; earliest: string }>>(
+    (acc, inv) => {
+      if (!acc[inv.currency]) {
+        acc[inv.currency] = { total: 0, earliest: inv.dueDate };
+      }
+      acc[inv.currency].total += inv.amount;
+      if (new Date(inv.dueDate) < new Date(acc[inv.currency].earliest)) {
+        acc[inv.currency].earliest = inv.dueDate;
+      }
+      return acc;
+    },
+    {}
+  );
+
+  // Derive exposure data for charts - FIXED: removed duplicate declaration
+  const exposureData = Object.entries(exposureByCurrency).map(([currency, data]) => ({
+    name: currency,
+    value: data.total,
+  }));
+
+  const fxRates = [
+    { pair: 'USD/NZD', locked: 0.65, market: 0.64 },
+    { pair: 'EUR/NZD', locked: 0.72, market: 0.71 },
+    { pair: 'GBP/NZD', locked: 0.58, market: 0.60 },
+    { pair: 'AUD/NZD', locked: 1.08, market: 1.07 },
+    { pair: 'JPY/NZD', locked: 95.2, market: 94.8 },
+    { pair: 'CAD/NZD', locked: 0.89, market: 0.88 },
+  ];
+
+  const COLORS = ['#2563eb', '#00C49F', '#FFBB28', '#FF4C4C', '#A855F7', '#F97316'];
+
+  // Example canned scenarios
+  const scenarios = [
+    {
+      id: 'usd_drop',
+      label: 'USD drops 10%',
+      adjust: (inv: Invoice) =>
+        inv.currency === 'USD' ? { ...inv, amount: inv.amount * 0.9 } : inv, // Fixed: should be 0.9 for 10% drop
+    },
+    {
+      id: 'eur_delay',
+      label: 'EUR invoices delayed 30 days',
+      adjust: (inv: Invoice) =>
+        inv.currency === 'EUR'
+          ? {
+              ...inv,
+              dueDate: new Date(new Date(inv.dueDate).getTime() + 30 * 86400000)
+                .toISOString()
+                .split('T')[0],
+            }
+          : inv,
+    },
+  ];
+
+  const runScenario = (scenarioId: string) => {
+    const scenario = scenarios.find(s => s.id === scenarioId);
+    if (scenario) {
+      const updated = invoices.map(scenario.adjust);
+      setInvoices(updated);
+      addAuditEntry(`Scenario run: ${scenario.label}`);
+    }
+  };
+
+  return (
+    <>
+      <header className="app-header">
+        <div className="logo">FX Risk Console</div>
+        <button
+          className="theme-toggle"
+          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+        >
+          {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+        </button>
+      </header>
+
+      <div className="page">
+        <div className="dashboard">
+          <h1>Demo Dashboard</h1>
+
+          <div className="sections">
+            {/* Invoices Section */}
+            <section className="invoices">
+              <h2>Invoices</h2>
+              <div className="view-toggle">
+                <button 
+                  className={viewMode === 'invoice' ? 'active' : ''}
+                  onClick={() => setViewMode('invoice')}
+                >
+                  View by Invoice
+                </button>
+                <button 
+                  className={viewMode === 'currency' ? 'active' : ''}
+                  onClick={() => setViewMode('currency')}
+                >
+                  View by Currency
+                </button>
+              </div>
+
+              {viewMode === 'invoice' ? (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Invoice ID</th>
+                      <th>Customer</th>
+                      <th>Currency</th>
+                      <th>Amount</th>
+                      <th>Due Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoices.map(inv => (
+                      <tr key={inv.id}>
+                        <td>{inv.id}</td>
+                        <td>{inv.customer}</td>
+                        <td>{inv.currency}</td>
+                        <td>{inv.amount.toLocaleString()}</td>
+                        <td>{inv.dueDate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Currency</th>
+                      <th>Total Exposure</th>
+                      <th>Earliest Due</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(exposureByCurrency).map(([currency, data]) => (
+                      <tr key={currency}>
+                        <td>{currency}</td>
+                        <td>{data.total.toLocaleString()}</td>
+                        <td>{data.earliest}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+
+            {/* Exposure Chart Section */}
+            <section className="charts">
+              <h2>Exposure by Currency</h2>
+              <div className="chart-toggle">
+                <button 
+                  className={chartView === 'pie' ? 'active' : ''}
+                  onClick={() => setChartView('pie')}
+                >
+                  Pie Chart
+                </button>
+                <button 
+                  className={chartView === 'bar' ? 'active' : ''}
+                  onClick={() => setChartView('bar')}
+                >
+                  Bar Chart
+                </button>
+              </div>
+              
+              <ResponsiveContainer width="100%" height={300}>
+                {chartView === 'pie' ? (
+                  <PieChart>
+                    <Pie
+                      data={exposureData}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={120}
+                      fill="#8884d8"
+                      label
+                    >
+                      {exposureData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`${value}`, 'Amount']} />
+                    <Legend />
+                  </PieChart>
+                ) : (
+                  <BarChart data={exposureData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${value}`, 'Amount']} />
+                    <Legend />
+                    <Bar dataKey="value" fill="#2563eb" name="Exposure" />
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            </section>
+
+            {/* FX Rates Section */}
+            <section className="fx-rates">
+              <h2>FX Rates (vs NZD)</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Currency Pair</th>
+                    <th>Locked Rate</th>
+                    <th>Market Rate</th>
+                    <th>Difference</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fxRates.map(rate => (
+                    <tr key={rate.pair}>
+                      <td>{rate.pair}</td>
+                      <td>{rate.locked}</td>
+                      <td>{rate.market}</td>
+                      <td className={rate.locked > rate.market ? 'positive' : 'negative'}>
+                        {(rate.locked - rate.market).toFixed(3)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+
+            {/* Scenario Simulator Section */}
+            <section className="scenario-section">
+              <h2>Scenario Simulator</h2>
+              <p className="scenario-explainer">
+                Select invoices or switch to currency view to simulate your exposure. 
+                You can also run canned "what-if" scenarios to see how shifts in FX rates 
+                or payment delays would affect totals.
+              </p>
+
+              <div className="scenario-buttons">
+                {scenarios.map(scenario => (
+                  <button
+                    key={scenario.id}
+                    onClick={() => runScenario(scenario.id)}
+                  >
+                    {scenario.label}
+                  </button>
+                ))}
+                <button
+                  onClick={() => {
+                    setInvoices(initialInvoices);
+                    addAuditEntry("Scenarios reset to baseline");
+                  }}
+                >
+                  Reset Scenarios
+                </button>
+              </div>
+
+              <ScenarioPanel invoices={invoices} />
+            </section>
+
+            {/* Audit Trail Section */}
+            <section className="audit-section">
+              <h2>Audit Trail</h2>
+              <p className="audit-explainer">
+                Every action is logged here for transparency, invoice changes, scenario runs, 
+                FX refreshes, and exports. This ensures a clear, auditable history of decisions.
+              </p>
+              <div className="audit-trail">
+                {auditLog.length === 0 ? (
+                  <p className="no-entries">No actions recorded yet</p>
+                ) : (
+                  auditLog.map((entry, idx) => (
+                    <div key={idx} className="audit-entry">
+                      {entry}
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+Key fixes:
+
+Removed duplicate exposureData declaration
+
+Fixed the USD drop scenario (should multiply by 0.9 for 10% drop, not 1.1)
+
+Added missing chart sections (Exposure charts and FX Rates)
+
+Improved scenario handling with a proper runScenario function
+
+Better button states with active classes
+
+Added proper number formatting with toLocaleString()
+
+Fixed audit trail to use divs instead of list items
+
+Added empty state for audit trail
+
+Make sure your CSS has styles for:
+
+.view-toggle button.active
+
+.chart-toggle button.active
+
+.fx-rates .positive and .fx-rates .negative
+
+All the section classes used
+
+This should now compile and run without errors!

@@ -9,6 +9,14 @@ back.
 
 ## Prompts
 
+Shared conversations where the platform gives me a link, and pasted transcripts
+under `transcripts/` where it doesn't.
+
+- 2025-04, DeepSeek, CSS and React while trying to get a demo dashboard to lay
+  out properly. The oldest one I still have, and a fair illustration of what I
+  actually reach for a model to do.
+  [transcript](transcripts/2025-04-deepseek-react-dashboard.txt)
+
 - 2026-08-08, Trying to figure out SV errors.
   [shared conversation](https://chatgpt.com/share/6a76d8f8-53e4-83ec-a83a-ff6321b0e11a)
 
