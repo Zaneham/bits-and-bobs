@@ -84,15 +84,6 @@ mention it.
 **Settled when** `fsqrt.d` and `sext.w` are emitted, both being free, and the
 B-extension gate exists so the rest can follow.
 
-### 6. Cloudflare will not serve my own 404
-**Against** Cloudflare Pages. 
-**The offence** A root `404.html` is served happily at `/404` and refused for
-every path that actually needs it, which gets an empty body instead. The
-documented remedy is a `_redirects` file. The `_redirects` file stalls the
-build queue outright, which I discovered after it had silently swallowed three
-commits and left the site a generation behind while telling me nothing.
-**Settled when** a genuinely missing path returns the abend dump. No, don't ask or you'll be in the book too!
-
 ---
 
 ## Remedy offered
@@ -133,6 +124,23 @@ backend that fails without the fix.
 ---
 
 ## Settled
+
+### ~~6. Cloudflare will not serve my own 404~~
+Settled 2026-08-14, and the grudge was aimed at the wrong party for most of its
+life.
+
+The site is not Cloudflare Pages at all. A Cloudflare auto-configuration pull
+request had quietly turned it into a Worker serving static assets, and Workers
+default `not_found_handling` to `none`, which returns exactly the empty body I
+was seeing. `_redirects` is a Pages feature, so it was never going to do
+anything here, which is why the documented remedy did nothing and why adding it
+upset the build.
+
+One line in `wrangler.jsonc`, `"not_found_handling": "404-page"`, and a missing
+path returns the abend dump. Live within forty seconds of the push.
+
+The lesson worth keeping is that I spent an evening applying the correct fix to
+the wrong platform, having never checked which platform it was.
 
 ### ~~10. FLOGR was written down as a free win. It is not.~~
 Settled 2026-08-13 by opening SA22-7832 instead of trusting my memory of it.
