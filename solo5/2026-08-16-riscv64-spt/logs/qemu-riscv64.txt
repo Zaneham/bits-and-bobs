@@ -1,0 +1,79 @@
+﻿== toolchain ==
+riscv64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+qemu-riscv64 version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.17)
+
+== build ==
+built clean
+ELF 64-bit LSB executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), statically linked, BuildID[sha1]=f42927724578b6b211119ca05a37c2325d58ec2c, not stripped
+
+== assembly the compiler produced for the wrappers ==
+
+0000000000010748 <sys_read>:
+   10748:	03f00893          	li	a7,63
+   1074c:	00000073          	ecall
+   10750:	8082                	ret
+
+0000000000010752 <sys_write>:
+   10752:	04000893          	li	a7,64
+   10756:	00000073          	ecall
+   1075a:	8082                	ret
+
+000000000001075c <sys_pread64>:
+   1075c:	04300893          	li	a7,67
+   10760:	00000073          	ecall
+   10764:	8082                	ret
+
+0000000000010766 <sys_pwrite64>:
+   10766:	04400893          	li	a7,68
+   1076a:	00000073          	ecall
+   1076e:	8082                	ret
+
+000000000001077a <sys_clock_gettime>:
+   1077a:	07100893          	li	a7,113
+   1077e:	00000073          	ecall
+   10782:	8082                	ret
+
+0000000000010784 <sys_epoll_pwait>:
+   10784:	48d9                	li	a7,22
+   10786:	00000073          	ecall
+   1078a:	8082                	ret
+
+000000000001078c <sys_timerfd_settime>:
+   1078c:	05600893          	li	a7,86
+   10790:	00000073          	ecall
+   10794:	8082                	ret
+
+0000000000010770 <sys_exit_group>:
+   10770:	05e00893          	li	a7,94
+   10774:	00000073          	ecall
+   10778:	a001                	j	10778 <sys_exit_group+0x8>
+
+0000000000010796 <spt_launch>:
+   10796:	812a                	mv	sp,a0
+   10798:	8532                	mv	a0,a2
+   1079a:	8582                	jr	a1
+
+== run under qemu-riscv64 ==
+**** riscv64 syscall wrapper check ****
+
+  (this line came out of sys_write)
+  ok    sys_write returns the byte count
+  ok    sys_read(-1) is -EBADF
+  ok    sys_write(-1) is -EBADF
+  ok    sys_pread64(-1) is -EBADF
+  ok    sys_pwrite64(-1) is -EBADF
+  ok    sys_timerfd_settime(-1) is -EBADF
+  ok    sys_epoll_pwait(-1) is -EBADF
+  ok    sys_clock_gettime succeeds
+  ok    sys_clock_gettime filled the struct
+  ok    monotonic clock does not go backwards
+  ok    rdtime is readable from U-mode
+  ok    rdtime advances
+
+spt_launch
+  ok    argument arrived in a0
+  ok    running on the new stack
+  ok    new stack is 16-byte aligned
+
+SUCCESS
+exit status 0

@@ -1,0 +1,527 @@
+﻿From <commit> Mon Sep 17 00:00:00 2001
+From: <author>
+Date: 2026-08-16
+Subject: [PATCH] Add riscv64 spt target
+
+---
+ bindings/bindings.h               |   2 +
+ bindings/cpu_riscv64.h            |  50 +++++++++
+ bindings/crt_init.h               |   2 +
+ bindings/spt/platform.c           |   3 +
+ bindings/spt/sys_linux_riscv64.c  | 165 ++++++++++++++++++++++++++++++
+ bindings/tls.c                    |  15 ++-
+ configure.sh                      |   9 ++
+ docs/building.md                  |   6 +-
+ opam/solo5.opam                   |   2 +-
+ tenders/common/elf.c              |   3 +
+ tenders/spt/spt_core.c            |   5 +
+ tenders/spt/spt_launch_riscv64.S  |  35 +++++++
+ tests/test_fpu/test_fpu.c         |  13 +++
+ tests/test_notls/test_notls.c     |   3 +
+ tests/test_seccomp/test_seccomp.c |   5 +
+ 15 files changed, 312 insertions(+), 6 deletions(-)
+ create mode 100644 bindings/cpu_riscv64.h
+ create mode 100644 bindings/spt/sys_linux_riscv64.c
+ create mode 100644 tenders/spt/spt_launch_riscv64.S
+
+diff --git a/bindings/bindings.h b/bindings/bindings.h
+index 3ccbf91..657d502 100644
+--- a/bindings/bindings.h
++++ b/bindings/bindings.h
+@@ -43,6 +43,8 @@
+ #include "cpu_aarch64.h"
+ #elif defined(__powerpc64__)
+ #include "cpu_ppc64.h"
++#elif defined(__riscv) && (__riscv_xlen == 64)
++#include "cpu_riscv64.h"
+ #else
+ #error Unsupported architecture
+ #endif
+diff --git a/bindings/cpu_riscv64.h b/bindings/cpu_riscv64.h
+new file mode 100644
+index 0000000..b4bd86a
+--- /dev/null
++++ b/bindings/cpu_riscv64.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright (c) 2015-2026 Contributors as noted in the AUTHORS file
++ *
++ * This file is part of Solo5, a sandboxed execution environment.
++ *
++ * Permission to use, copy, modify, and/or distribute this software
++ * for any purpose with or without fee is hereby granted, provided
++ * that the above copyright notice and this permission notice appear
++ * in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
++ * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
++ * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
++ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
++ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
++ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
++ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++#ifndef __CPU_RISCV64_H__
++#define __CPU_RISCV64_H__
++
++/* memory defines */
++#define PAGE_SIZE  4096
++#define PAGE_SHIFT 12
++#define PAGE_MASK  ~(0xfff)
++
++#ifndef ASM_FILE
++
++/*
++ * The remainder of this file is used only from C.
++ */
++static inline uint64_t cpu_cntvct(void)
++{
++    uint64_t val;
++
++    /* rdtime and not rdcycle, which Linux leaves trapping in U-mode. */
++    __asm__ __volatile__("rdtime %0" : "=r"(val));
++
++    return val;
++}
++
++static inline void cpu_set_tls_base(uint64_t base)
++{
++    __asm__ __volatile__("mv tp, %0" : : "r"(base));
++}
++
++#endif /* !ASM_FILE */
++
++#endif /* __CPU_RISCV64_H__ */
+diff --git a/bindings/crt_init.h b/bindings/crt_init.h
+index 99843c6..ac2f7b9 100644
+--- a/bindings/crt_init.h
++++ b/bindings/crt_init.h
+@@ -26,6 +26,8 @@ extern uintptr_t SSP_GUARD_SYMBOL;
+ #define READ_CPU_TICKS cpu_cntvct
+ #elif defined(__powerpc64__)
+ #define READ_CPU_TICKS cpu_cntvct
++#elif defined(__riscv) && (__riscv_xlen == 64)
++#define READ_CPU_TICKS cpu_cntvct
+ #else
+ #error Unsupported architecture
+ #endif
+diff --git a/bindings/spt/platform.c b/bindings/spt/platform.c
+index 0f1f2e2..831bd22 100644
+--- a/bindings/spt/platform.c
++++ b/bindings/spt/platform.c
+@@ -63,6 +63,9 @@ int platform_set_tls_base(uint64_t base)
+ #elif defined(__powerpc64__)
+     cpu_set_tls_base(base);
+     return 0;
++#elif defined(__riscv) && (__riscv_xlen == 64)
++    cpu_set_tls_base(base);
++    return 0;
+ #else
+ #error Unsupported architecture
+ #endif
+diff --git a/bindings/spt/sys_linux_riscv64.c b/bindings/spt/sys_linux_riscv64.c
+new file mode 100644
+index 0000000..211f5f3
+--- /dev/null
++++ b/bindings/spt/sys_linux_riscv64.c
+@@ -0,0 +1,165 @@
++/*
++ * Copyright (c) 2015-2026 Contributors as noted in the AUTHORS file
++ *
++ * This file is part of Solo5, a sandboxed execution environment.
++ *
++ * Permission to use, copy, modify, and/or distribute this software
++ * for any purpose with or without fee is hereby granted, provided
++ * that the above copyright notice and this permission notice appear
++ * in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
++ * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
++ * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
++ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
++ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
++ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
++ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#include "bindings.h"
++
++/*
++ * The sys_ functions in this file are intentionally weakly typed as they only
++ * pass through values to/from the system call without interpretation. All
++ * integer values are passed as (long) and all pointer values are passed as
++ * (void *).
++ */
++
++/*
++ * riscv64 takes the generic syscall numbering from asm-generic/unistd.h, so
++ * none of these match the ppc64le port they were written against. Errors come
++ * back as a negative a0 rather than a condition bit, so there is nothing to
++ * unpick afterwards.
++ */
++#define SYS_epoll_pwait     22
++#define SYS_read            63
++#define SYS_write           64
++#define SYS_pread64         67
++#define SYS_pwrite64        68
++#define SYS_timerfd_settime 86
++#define SYS_exit_group      94
++#define SYS_clock_gettime   113
++
++long sys_read(long fd, void *buf, long size)
++{
++    register long a7 __asm__("a7") = SYS_read;
++    register long a0 __asm__("a0") = fd;
++    register long a1 __asm__("a1") = (long)buf;
++    register long a2 __asm__("a2") = size;
++
++    __asm__ __volatile__("ecall"
++                         : "+r"(a0)
++                         : "r"(a7), "r"(a1), "r"(a2)
++                         : "memory");
++
++    return a0;
++}
++
++long sys_write(long fd, const void *buf, long size)
++{
++    register long a7 __asm__("a7") = SYS_write;
++    register long a0 __asm__("a0") = fd;
++    register long a1 __asm__("a1") = (long)buf;
++    register long a2 __asm__("a2") = size;
++
++    __asm__ __volatile__("ecall"
++                         : "+r"(a0)
++                         : "r"(a7), "r"(a1), "r"(a2)
++                         : "memory");
++
++    return a0;
++}
++
++long sys_pread64(long fd, void *buf, long size, long pos)
++{
++    register long a7 __asm__("a7") = SYS_pread64;
++    register long a0 __asm__("a0") = fd;
++    register long a1 __asm__("a1") = (long)buf;
++    register long a2 __asm__("a2") = size;
++    register long a3 __asm__("a3") = pos;
++
++    __asm__ __volatile__("ecall"
++                         : "+r"(a0)
++                         : "r"(a7), "r"(a1), "r"(a2), "r"(a3)
++                         : "memory");
++
++    return a0;
++}
++
++long sys_pwrite64(long fd, const void *buf, long size, long pos)
++{
++    register long a7 __asm__("a7") = SYS_pwrite64;
++    register long a0 __asm__("a0") = fd;
++    register long a1 __asm__("a1") = (long)buf;
++    register long a2 __asm__("a2") = size;
++    register long a3 __asm__("a3") = pos;
++
++    __asm__ __volatile__("ecall"
++                         : "+r"(a0)
++                         : "r"(a7), "r"(a1), "r"(a2), "r"(a3)
++                         : "memory");
++
++    return a0;
++}
++
++void sys_exit_group(long status)
++{
++    register long a7 __asm__("a7") = SYS_exit_group;
++    register long a0 __asm__("a0") = status;
++
++    __asm__ __volatile__("ecall" : : "r"(a7), "r"(a0) : "memory");
++
++    for (;;)
++        ;
++}
++
++long sys_clock_gettime(const long which, void *ts)
++{
++    register long a7 __asm__("a7") = SYS_clock_gettime;
++    register long a0 __asm__("a0") = which;
++    register long a1 __asm__("a1") = (long)ts;
++
++    __asm__ __volatile__("ecall"
++                         : "+r"(a0)
++                         : "r"(a7), "r"(a1)
++                         : "memory");
++
++    return a0;
++}
++
++long sys_epoll_pwait(long epfd, void *events, long maxevents, long timeout,
++                     void *sigmask, long sigsetsize)
++{
++    register long a7 __asm__("a7") = SYS_epoll_pwait;
++    register long a0 __asm__("a0") = epfd;
++    register long a1 __asm__("a1") = (long)events;
++    register long a2 __asm__("a2") = maxevents;
++    register long a3 __asm__("a3") = timeout;
++    register long a4 __asm__("a4") = (long)sigmask;
++    register long a5 __asm__("a5") = sigsetsize;
++
++    __asm__ __volatile__("ecall"
++                         : "+r"(a0)
++                         : "r"(a7), "r"(a1), "r"(a2), "r"(a3), "r"(a4), "r"(a5)
++                         : "memory");
++
++    return a0;
++}
++
++long sys_timerfd_settime(long fd, long flags, const void *utmr, void *otmr)
++{
++    register long a7 __asm__("a7") = SYS_timerfd_settime;
++    register long a0 __asm__("a0") = fd;
++    register long a1 __asm__("a1") = flags;
++    register long a2 __asm__("a2") = (long)utmr;
++    register long a3 __asm__("a3") = (long)otmr;
++
++    __asm__ __volatile__("ecall"
++                         : "+r"(a0)
++                         : "r"(a7), "r"(a1), "r"(a2), "r"(a3)
++                         : "memory");
++
++    return a0;
++}
+diff --git a/bindings/tls.c b/bindings/tls.c
+index 60f2f12..20e454f 100644
+--- a/bindings/tls.c
++++ b/bindings/tls.c
+@@ -47,6 +47,12 @@ struct tcb {
+     void *pad;
+ };
+ 
++#elif defined(__riscv) && (__riscv_xlen == 64)
++/* Variant I, but with no gap above tp, so the block starts at tp exactly */
++struct tcb {
++    void *tp;
++};
++
+ #else
+ #error Unsupported architecture
+ #endif
+@@ -65,6 +71,8 @@ uintptr_t solo5_tls_tp_offset(uintptr_t tls)
+     tp = tls + LTDATA + LTBSS;
+ #elif defined(__aarch64__)
+     tp = tls;
++#elif defined(__riscv) && (__riscv_xlen == 64)
++    tp = tls + sizeof(struct tcb);
+ #else
+ #error Unsupported architecture
+ #endif
+@@ -77,7 +85,7 @@ uintptr_t _solo5_tls_data_offset(uintptr_t tls)
+     uintptr_t data;
+ #if defined(__x86_64__) || defined(__powerpc64__)
+     data = tls;
+-#elif defined(__aarch64__)
++#elif defined(__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64))
+     data = tls + sizeof(struct tcb);
+ #else
+ #error Unsupported architecture
+@@ -91,9 +99,12 @@ solo5_result_t solo5_tls_init(uintptr_t tls)
+     if ((void *)tls == NULL)
+         return SOLO5_R_EINVAL;
+ 
+-    /* set tp at its proper place in the TLS block */
++#if !(defined(__riscv) && (__riscv_xlen == 64))
++    /* Set tp at its proper place in the TLS block. Not on RISC-V, where the
++     * thread variables start at tp itself and this would land on live data. */
+     uintptr_t *tmp = (uintptr_t *)solo5_tls_tp_offset(tls);
+     *tmp = (uintptr_t)tmp;
++#endif
+ 
+     /* copy the .tdata values */
+     memcpy((void *)_solo5_tls_data_offset(tls), TDATA, LTDATA);
+diff --git a/configure.sh b/configure.sh
+index 787b96d..3ef7980 100755
+--- a/configure.sh
++++ b/configure.sh
+@@ -299,6 +299,10 @@ case ${HOST_CC_MACHINE} in
+         CONFIG_HOST_ARCH=ppc64le CONFIG_HOST=Linux
+         CONFIG_SPT_TENDER=1
+         ;;
++    riscv64-*linux*)
++        CONFIG_HOST_ARCH=riscv64 CONFIG_HOST=Linux
++        CONFIG_SPT_TENDER=1
++        ;;
+     x86_64-*freebsd*)
+         CONFIG_HOST_ARCH=x86_64 CONFIG_HOST=FreeBSD
+         CONFIG_HVT_TENDER=1
+@@ -446,6 +450,11 @@ case ${TARGET_CC_MACHINE} in
+         TARGET_LD_MAX_PAGE_SIZE=0x10000
+         CONFIG_SPT=1
+         ;;
++    riscv64-*)
++        TARGET_ARCH=riscv64
++        TARGET_LD_MAX_PAGE_SIZE=0x1000
++        CONFIG_SPT=1
++        ;;
+     *)
+         die "Unsupported target toolchain: ${TARGET_CC_MACHINE}"
+         ;;
+diff --git a/docs/building.md b/docs/building.md
+index ef28ca4..4ff0a75 100644
+--- a/docs/building.md
++++ b/docs/building.md
+@@ -75,9 +75,9 @@ Experimental:
+   for full W^X support.
+ * _hvt_: DragonFly nvmm, using `solo5-hvt` as a _tender_, on the x86\_64
+   architecture.  DragonFly 6.4 or later is recommended.
+-* _spt_: Linux systems on the x86\_64, ppc64le and aarch64 architectures, using
+-  `solo5-spt` as a _tender_. A Linux distribution with libseccomp >= 2.3.3 is
+-  required.
++* _spt_: Linux systems on the x86\_64, ppc64le, aarch64 and riscv64
++  architectures, using `solo5-spt` as a _tender_. A Linux distribution with
++  libseccomp >= 2.3.3 is required, or >= 2.5.0 on riscv64.
+ * _muen_: The [Muen Separation Kernel](https://muen.sk/), on the x86\_64
+   architecture. Muen commit `f10bd6b` or later is required.
+ 
+diff --git a/opam/solo5.opam b/opam/solo5.opam
+index 08e131c..e937dd4 100644
+--- a/opam/solo5.opam
++++ b/opam/solo5.opam
+@@ -34,7 +34,7 @@ conflicts: [
+   "solo5-bindings-xen"
+ ]
+ available: [
+-  (arch = "x86_64" | arch = "arm64" | arch = "ppc64") &
++  (arch = "x86_64" | arch = "arm64" | arch = "ppc64" | arch = "riscv64") &
+   (os = "linux" | os = "freebsd" | os = "openbsd" | os = "dragonfly")
+ ]
+ synopsis: "Solo5 sandboxed execution environment"
+diff --git a/tenders/common/elf.c b/tenders/common/elf.c
+index aba51dd..0de30d1 100644
+--- a/tenders/common/elf.c
++++ b/tenders/common/elf.c
+@@ -58,6 +58,9 @@
+ #elif defined(__powerpc64__)
+ #define EM_TARGET    EM_PPC64
+ #define EM_PAGE_SIZE 0x10000
++#elif defined(__riscv) && (__riscv_xlen == 64)
++#define EM_TARGET    EM_RISCV
++#define EM_PAGE_SIZE 0x1000
+ #else
+ #error Unsupported target
+ #endif
+diff --git a/tenders/spt/spt_core.c b/tenders/spt/spt_core.c
+index 8c3a049..7733b4f 100644
+--- a/tenders/spt/spt_core.c
++++ b/tenders/spt/spt_core.c
+@@ -246,6 +246,11 @@ void spt_run(struct spt *spt, uint64_t p_entry)
+      * Stack alignment on PPC64 is 0x10, minimum stack frame size is 112 bytes.
+      */
+     uint64_t sp = spt->mem_size - 112;
++#elif defined(__riscv) && (__riscv_xlen == 64)
++    /*
++     * Stack alignment on RISC-V is 0x10, with no minimum frame size.
++     */
++    uint64_t sp = spt->mem_size - 0x10;
+ #else
+ #error Unsupported architecture
+ #endif
+diff --git a/tenders/spt/spt_launch_riscv64.S b/tenders/spt/spt_launch_riscv64.S
+new file mode 100644
+index 0000000..467374c
+--- /dev/null
++++ b/tenders/spt/spt_launch_riscv64.S
+@@ -0,0 +1,35 @@
++/*
++ * Copyright (c) 2015-2026 Contributors as noted in the AUTHORS file
++ *
++ * This file is part of Solo5, a sandboxed execution environment.
++ *
++ * Permission to use, copy, modify, and/or distribute this software
++ * for any purpose with or without fee is hereby granted, provided
++ * that the above copyright notice and this permission notice appear
++ * in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
++ * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
++ * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
++ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
++ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
++ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
++ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#define ENTRY(x) .text; .globl x; .type x,%function; x:
++#define END(x)   .size x, . - x
++
++/*
++ * a0: stack pointer to use
++ * a1: function to call
++ * a2: argument to pass to function
++ *
++ * No link register to load, so the tail jump is the call. Nothing returns here.
++ */
++ENTRY(spt_launch)
++	mv sp, a0         // load stack pointer
++	mv a0, a2         // parameter to pass to function goes into a0
++	jr a1             // jump to the function
++END(spt_launch)
+diff --git a/tests/test_fpu/test_fpu.c b/tests/test_fpu/test_fpu.c
+index 6069f37..da11cd8 100644
+--- a/tests/test_fpu/test_fpu.c
++++ b/tests/test_fpu/test_fpu.c
+@@ -75,6 +75,19 @@ int solo5_app_main(const struct solo5_start_info *si __attribute__((unused)))
+     DOMUL(c[2]);
+     DOMUL(c[3]);
+ #undef DOMUL
++#elif defined(__riscv) && (__riscv_xlen == 64)
++#define DOMUL(VAR)                                                             \
++    __asm__("flw ft0, %0\n"                                                    \
++            "fmul.s ft0, ft0, ft0\n"                                           \
++            "fsw ft0, %0\n"                                                    \
++            : "=m"(VAR)                                                        \
++            : "m"(VAR)                                                         \
++            : "memory")
++    DOMUL(c[0]);
++    DOMUL(c[1]);
++    DOMUL(c[2]);
++    DOMUL(c[3]);
++#undef DOMUL
+ #else
+ #error Unsupported architecture
+ #endif
+diff --git a/tests/test_notls/test_notls.c b/tests/test_notls/test_notls.c
+index bfa1528..087a52a 100644
+--- a/tests/test_notls/test_notls.c
++++ b/tests/test_notls/test_notls.c
+@@ -41,6 +41,9 @@ int solo5_app_main(const struct solo5_start_info *si __attribute__((unused)))
+                        : "x0", "w1");
+ #elif defined(__powerpc64__)
+     __asm__ __volatile("ld 3,-28672(13)" : : : "r3", "r13");
++#elif defined(__riscv) && (__riscv_xlen == 64)
++    /* No gap above tp on RISC-V, so the first thread variable is at tp itself. */
++    __asm__ __volatile("ld a0, 0(tp)" : : : "a0");
+ #else
+ #error Unsupported architecture
+ #endif
+diff --git a/tests/test_seccomp/test_seccomp.c b/tests/test_seccomp/test_seccomp.c
+index e3457f7..e96d20d 100644
+--- a/tests/test_seccomp/test_seccomp.c
++++ b/tests/test_seccomp/test_seccomp.c
+@@ -54,6 +54,11 @@ int solo5_app_main(const struct solo5_start_info *si __attribute__((unused)))
+     register long r3 __asm__("r3") = 0;
+ 
+     __asm__ __volatile__("sc" : "=r"(r3) : "r"(r0), "r"(r3) : "cc", "memory");
++#elif defined(__riscv) && (__riscv_xlen == 64)
++    register long a7 __asm__("a7") = 23;
++    register long a0 __asm__("a0") = 1;
++
++    __asm__ __volatile__("ecall" : "+r"(a0) : "r"(a7) : "memory");
+ #else
+ #error Unsupported architecture
+ #endif
+-- 
+2.51.0.windows.2
+

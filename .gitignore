@@ -8,6 +8,8 @@
 *.o
 *.a
 
+Errata/
+
 # Jane Street ASIC puzzle 2026. Their rules: no spoilers or full writeup
 # online until submissions close on 4 September 2026. The notes in here
 # contain the answer, so the whole directory stays out of the repo until
