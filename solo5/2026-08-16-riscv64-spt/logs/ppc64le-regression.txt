@@ -1,0 +1,38 @@
+﻿== box ==
+ppc64le
+GNU ld version 2.35.2-72.el9
+
+### upstream, unpatched (17987e2, 1 file changed)
+  hello        rc=0    solo5_exit(0)
+  tls          rc=10   solo5_exit(10)
+  fpu          rc=0    solo5_exit(0)
+  globals      rc=0    solo5_exit(0)
+  time         rc=0    solo5_exit(0)
+  quiet        rc=0    solo5_exit(0)
+  notls        rc=139  no marker
+  seccomp      rc=159  no marker
+ssh : /tmp/pc.sh: line 13: warning: command substitution: ignored null byte in input
+At line:1 char:518
++ ... | Out-Null; ssh -o BatchMode=yes <host> "tr -d '\r' < /tmp/ppc-comp ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (/tmp/pc.sh: lin...l byte in input:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  ssp          rc=255  ABORT: Stack corruption detected
+  zeropage     rc=139  no marker
+  exception    rc=139  no marker
+
+### with riscv64 spt patch (17987e2, 12 files changed)
+  hello        rc=0    solo5_exit(0)
+  tls          rc=10   solo5_exit(10)
+  fpu          rc=0    solo5_exit(0)
+  globals      rc=0    solo5_exit(0)
+  time         rc=0    solo5_exit(0)
+  quiet        rc=0    solo5_exit(0)
+  notls        rc=139  no marker
+  seccomp      rc=159  no marker
+/tmp/pc.sh: line 13: warning: command substitution: ignored null byte in input
+  ssp          rc=255  ABORT: Stack corruption detected
+  zeropage     rc=139  no marker
+  exception    rc=139  no marker
+

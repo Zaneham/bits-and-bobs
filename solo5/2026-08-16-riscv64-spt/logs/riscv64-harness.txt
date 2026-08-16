@@ -1,0 +1,79 @@
+﻿== toolchain (native) ==
+building on riscv64
+gcc (Debian 14.2.0-19) 14.2.0
+
+== build ==
+built clean
+ELF 64-bit LSB executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), statically linked, BuildID[sha1]=ddc81c2856074f415db05d5644d21ab78afd8e78, not stripped
+
+== assembly the compiler produced for the wrappers ==
+
+0000000000010764 <sys_read>:
+   10764:	03f00893          	li	a7,63
+   10768:	00000073          	ecall
+   1076c:	8082                	ret
+
+000000000001076e <sys_write>:
+   1076e:	04000893          	li	a7,64
+   10772:	00000073          	ecall
+   10776:	8082                	ret
+
+0000000000010778 <sys_pread64>:
+   10778:	04300893          	li	a7,67
+   1077c:	00000073          	ecall
+   10780:	8082                	ret
+
+0000000000010782 <sys_pwrite64>:
+   10782:	04400893          	li	a7,68
+   10786:	00000073          	ecall
+   1078a:	8082                	ret
+
+0000000000010796 <sys_clock_gettime>:
+   10796:	07100893          	li	a7,113
+   1079a:	00000073          	ecall
+   1079e:	8082                	ret
+
+00000000000107a0 <sys_epoll_pwait>:
+   107a0:	48d9                	li	a7,22
+   107a2:	00000073          	ecall
+   107a6:	8082                	ret
+
+00000000000107a8 <sys_timerfd_settime>:
+   107a8:	05600893          	li	a7,86
+   107ac:	00000073          	ecall
+   107b0:	8082                	ret
+
+000000000001078c <sys_exit_group>:
+   1078c:	05e00893          	li	a7,94
+   10790:	00000073          	ecall
+   10794:	a001                	j	10794 <sys_exit_group+0x8>
+
+00000000000107b2 <spt_launch>:
+   107b2:	812a                	mv	sp,a0
+   107b4:	8532                	mv	a0,a2
+   107b6:	8582                	jr	a1
+
+== run (native) ==
+**** riscv64 syscall wrapper check ****
+
+  (this line came out of sys_write)
+  ok    sys_write returns the byte count
+  ok    sys_read(-1) is -EBADF
+  ok    sys_write(-1) is -EBADF
+  ok    sys_pread64(-1) is -EBADF
+  ok    sys_pwrite64(-1) is -EBADF
+  ok    sys_timerfd_settime(-1) is -EBADF
+  ok    sys_epoll_pwait(-1) is -EBADF
+  ok    sys_clock_gettime succeeds
+  ok    sys_clock_gettime filled the struct
+  ok    monotonic clock does not go backwards
+  ok    rdtime is readable from U-mode
+  ok    rdtime advances
+
+spt_launch
+  ok    argument arrived in a0
+  ok    running on the new stack
+  ok    new stack is 16-byte aligned
+
+SUCCESS
+exit status 0
