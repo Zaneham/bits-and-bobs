@@ -1,11 +1,10 @@
-# riscv64 spt target for Solo5
+# Solo unos pocos sistemas operativos
 
 Solo5 had no RISC-V support at all. No code, no issue, no PR that ever mentioned
 it. This adds spt, following the ppc64le port in
 [PR #368](https://github.com/Solo5/solo5/pull/368).
 
-*NOTE:* this document is thrown together with Claude Code and heavily edited by
-me. Claude also assisted with organising the output and tests into this entry.
+*NOTE:* No just me this time. No more Claude to help organise my tests so its just my Mk.1 brain and hands (if you're confused this is where my LLM disclaimer is)
 
 ## What's worth looking at
 
