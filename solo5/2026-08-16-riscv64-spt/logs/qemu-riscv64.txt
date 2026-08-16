@@ -1,4 +1,5 @@
-﻿== toolchain ==
+﻿== toolchain (qemu) ==
+building on x86_64
 riscv64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
 qemu-riscv64 version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.17)
 
@@ -53,7 +54,7 @@ ELF 64-bit LSB executable, UCB RISC-V, RVC, double-float ABI, version 1 (SYSV), 
    10798:	8532                	mv	a0,a2
    1079a:	8582                	jr	a1
 
-== run under qemu-riscv64 ==
+== run (qemu) ==
 **** riscv64 syscall wrapper check ****
 
   (this line came out of sys_write)

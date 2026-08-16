@@ -8,15 +8,27 @@ set -e
 
 ENTRY=${ENTRY:-/mnt/c/dev/bits-and-bobs/solo5/2026-08-16-riscv64-spt}
 SOLO5=${SOLO5:-/mnt/c/dev/systems/solo5}
-CC=${CC:-riscv64-linux-gnu-gcc}
-OBJDUMP=${OBJDUMP:-riscv64-linux-gnu-objdump}
+
+# Native on a riscv64 box, cross plus qemu anywhere else.
+if [ "$(uname -m)" = "riscv64" ]; then
+    CC=${CC:-gcc}
+    OBJDUMP=${OBJDUMP:-objdump}
+    RUN=${RUN:-}
+    TAG=native
+else
+    CC=${CC:-riscv64-linux-gnu-gcc}
+    OBJDUMP=${OBJDUMP:-riscv64-linux-gnu-objdump}
+    RUN=${RUN:-qemu-riscv64}
+    TAG=qemu
+fi
 
 mkdir -p "$ENTRY/logs" "$ENTRY/disasm" "$ENTRY/asm"
 OUT=$(mktemp -d)
 
-echo "== toolchain =="
+echo "== toolchain ($TAG) =="
+echo "building on $(uname -m)"
 $CC --version | head -1
-qemu-riscv64 --version | head -1
+[ -n "$RUN" ] && $RUN --version | head -1
 
 echo
 echo "== build =="
@@ -36,17 +48,17 @@ $CC -S -O2 -ffreestanding -D__SOLO5_BINDINGS__ \
     -o "$ENTRY/asm/sys_linux_riscv64.s" \
     "$SOLO5/bindings/spt/sys_linux_riscv64.c"
 
-$OBJDUMP -d "$OUT/rvcheck" > "$ENTRY/disasm/rvcheck.objdump.txt"
+$OBJDUMP -d "$OUT/rvcheck" > "$ENTRY/disasm/rvcheck-$TAG.objdump.txt"
 for f in sys_read sys_write sys_pread64 sys_pwrite64 sys_clock_gettime \
          sys_epoll_pwait sys_timerfd_settime sys_exit_group spt_launch; do
     echo
     awk -v f="$f" '$0 ~ "<"f">:" {p=1} p&&/^$/{p=0} p' \
-        "$ENTRY/disasm/rvcheck.objdump.txt"
+        "$ENTRY/disasm/rvcheck-$TAG.objdump.txt"
 done
 
 echo
-echo "== run under qemu-riscv64 =="
-qemu-riscv64 "$OUT/rvcheck"
+echo "== run ($TAG) =="
+$RUN "$OUT/rvcheck"
 echo "exit status $?"
 
 rm -rf "$OUT"
