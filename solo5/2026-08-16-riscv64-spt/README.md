@@ -11,7 +11,6 @@ me. Claude also assisted with organising the output and tests into this entry.
 
 | Question | File |
 |---|---|
-| What the ABI says, before any code | `notes/riscv-abi.md` |
 | Does it build and pass on real silicon? | `logs/riscv64-solo5-tests.txt` |
 | Do the wrappers do what I think? | `logs/riscv64-harness.txt`, `disasm/` |
 | Same thing under an emulator | `logs/qemu-riscv64.txt` |

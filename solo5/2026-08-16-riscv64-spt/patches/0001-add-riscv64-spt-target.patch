@@ -3,27 +3,56 @@ From: <author>
 Date: 2026-08-16
 Subject: [PATCH] Add riscv64 spt target
 
----
- bindings/bindings.h               |   2 +
- bindings/cpu_riscv64.h            |  50 +++++++++
- bindings/crt_init.h               |   2 +
- bindings/spt/platform.c           |   3 +
- bindings/spt/sys_linux_riscv64.c  | 165 ++++++++++++++++++++++++++++++
- bindings/tls.c                    |  15 ++-
- configure.sh                      |   9 ++
- docs/building.md                  |   6 +-
- opam/solo5.opam                   |   2 +-
- tenders/common/elf.c              |   3 +
- tenders/spt/spt_core.c            |   5 +
- tenders/spt/spt_launch_riscv64.S  |  35 +++++++
- tests/test_fpu/test_fpu.c         |  13 +++
- tests/test_notls/test_notls.c     |   3 +
- tests/test_seccomp/test_seccomp.c |   5 +
- 15 files changed, 312 insertions(+), 6 deletions(-)
- create mode 100644 bindings/cpu_riscv64.h
- create mode 100644 bindings/spt/sys_linux_riscv64.c
- create mode 100644 tenders/spt/spt_launch_riscv64.S
-
+diff --git a/.github/workflows/ubuntu-riscv.yml b/.github/workflows/ubuntu-riscv.yml
+new file mode 100644
+index 0000000..012cb29
+--- /dev/null
++++ b/.github/workflows/ubuntu-riscv.yml
+@@ -0,0 +1,31 @@
++name: Ubuntu-riscv
++on:
++  push:
++    branches:
++      - main
++  pull_request:
++jobs:
++  Build:
++    name: RISCV64
++    runs-on: ubuntu-24.04
++    steps:
++      - name: Checkout code
++        uses: actions/checkout@v4
++      - name: Set up qemu
++        uses: docker/setup-qemu-action@v3
++        with:
++          platforms: riscv64
++      # Build only. The tender itself runs fine under qemu-user, but it maps the
++      # guest at a fixed low address and jumps to it, which qemu-user will not
++      # give up, so every unikernel segfaults. Running the suite wants real
++      # hardware.
++      - name: Build
++        run: |
++          docker run --rm --platform linux/riscv64 -v "$PWD:/src" -w /src \
++            debian:trixie sh -c '
++              apt-get update -qq
++              DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
++                gcc make libseccomp-dev pkg-config git
++              git config --global --add safe.directory /src
++              ./configure.sh
++              make'
+diff --git a/CHANGES.md b/CHANGES.md
+index c4a5900..accc448 100644
+--- a/CHANGES.md
++++ b/CHANGES.md
+@@ -1,3 +1,8 @@
++## Unreleased
++
++- Add riscv64 support to the spt target, and a build-only CI job for it
++  (@Zaneham)
++
+ ## v0.12.1 (2026-08-12)
+ 
+ - roundup the memory for the ringbuffer to have the unikernel memory
 diff --git a/bindings/bindings.h b/bindings/bindings.h
 index 3ccbf91..657d502 100644
 --- a/bindings/bindings.h
@@ -522,6 +551,3 @@ index e3457f7..e96d20d 100644
  #else
  #error Unsupported architecture
  #endif
--- 
-2.51.0.windows.2
-
