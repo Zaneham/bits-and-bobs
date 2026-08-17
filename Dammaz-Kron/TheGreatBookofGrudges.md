@@ -84,34 +84,13 @@ mention it.
 **Settled when** `fsqrt.d` and `sext.w` are emitted, both being free, and the
 B-extension gate exists so the rest can follow.
 
-### 11. OCaml's RISC-V assembly only works if nobody compresses it
-**Against** `asmcomp/riscv`, the third grudge in this book against the same
-corner of the tree and by a distance the worst behaved of them.
-**The offence** The compiler emits the same assembly on Linux as it does on a
-freestanding cross build. Byte for byte identical. I diffed it. The only thing
-that differs in the entire file is the module name sitting in the frametable.
-
-What differs is who assembles it. `Config.asm` is bare `as` on Linux and gets
-no compression and no relaxation. ocaml-solo5 sets it to a gcc wrapper, which
-cheerfully staples `-march=rv64imafdc` onto compiler-generated assembly that
-never asked for it, because as far as it is concerned it is compiling C.
-
-So it builds. It links. It boots. It allocates, it collects garbage, it runs an
-effect handler and resumes the continuation, freestanding, on RISC-V, first
-time of asking. And then it cannot print a number (GAH). `Printf.sprintf
-"plain"`, no conversion in it, nothing whatsoever to format, hands back binary
-garbage. `%d` segfaults loading field six of a closure environment.
-
-An afternoon in a disassembler for this. On the way I convicted gp-relative
-relaxation, then frametable label differences, then host archive contamination,
-and all three walked free. What it actually is: every function entry sitting at
-2 mod 4, and 287 `R_RISCV_ALIGN` relocations where the Linux build has exactly
-none. Drop the `c` and every last one of them works.
-**Settled when** the backend tolerates compression of its own output, or it is
-established that it cannot and the toolchain is made to stop asking. What galls
-is that this has sat there for as long as riscv64 has been Tier 1, and digging
-it out took a unikernel, because assembling OCaml through a C driver is a thing
-precisely one project on earth does.
+### 12. I did not search the tracker properly
+**Against** myself, which counts double.
+**The offence** Spent an afternoon root-causing #14799, which was reported in
+May and fixed by Xavier Leroy in June with the same `.option norvc` I arrived
+at. I did search. I only searched open issues, and it closed on the 15th of May
+(doh!).
+**Settled when** the search includes closed issues.
 
 ---
 
@@ -170,6 +149,22 @@ path returns the abend dump. Live within forty seconds of the push.
 
 The lesson worth keeping is that I spent an evening applying the correct fix to
 the wrong platform, having never checked which platform it was.
+
+### ~~11. OCaml's RISC-V assembly only works if nobody compresses it~~
+Settled 2026-06-26 by Xavier Leroy in #14873, six weeks before I entered it.
+
+`asmcomp/riscv` lowers a switch to a jump island and indexes it by four, so
+compressed two-byte entries send every index past the first to the wrong arm.
+On a freestanding cross build that meant `Printf` handing back binary garbage
+while the GC, effects and everything else worked perfectly (GAH).
+
+I had the mechanism wrong in the entry as well. I blamed the 2 mod 4 alignment
+and the 287 `R_RISCV_ALIGN` relocations, and both were innocent. Compression on
+with `-mno-relax` gives aligned symbols, no ALIGN relocations, and still
+miscompiles.
+
+5.5.0 shipped on the 19th of June and missed the fix by a week, which is the
+only reason I met it at all.
 
 ### ~~10. FLOGR was written down as a free win. It is not.~~
 Settled 2026-08-13 by opening SA22-7832 instead of trusting my memory of it.
