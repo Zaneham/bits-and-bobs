@@ -1,0 +1,22 @@
+Four builds of the same source, same compiler version, same machine.
+Test programs are in src/. Run with solo5-spt on riscv64 hardware.
+
+  build                          compressed  islands  Printf
+  ---------------------------------------------------------
+  bare as (linux, control)       no          4-byte   works
+  gcc wrapper, -march=..c        yes         2-byte   FAILS
+  gcc wrapper, -march=..c,       yes         2-byte   FAILS
+    plus -mno-relax
+  gcc wrapper, -march=..c,       yes         4-byte   works
+    plus .option norvc on the
+    island only
+
+Failure modes seen in the two failing builds:
+  Printf.sprintf "plain"   returns binary garbage, no crash
+  Printf.sprintf "%s" "x"  segfault
+  Printf.sprintf "%d" 42   segfault in default_float_precision,
+                           loading field 6 of a closure environment
+
+Unaffected in every build: GC, allocation, effects, currying, closures with
+large environments, Bytes, Buffer, String, float arithmetic, string_of_float,
+float_of_string, nolibc's own snprintf.

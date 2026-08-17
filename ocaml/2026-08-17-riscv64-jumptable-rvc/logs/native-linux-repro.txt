@@ -1,0 +1,19 @@
+Plain riscv64 Linux. No unikernel, no cross compiler, no freestanding
+anything. One OCaml source file, one .s from one compiler, assembled two
+ways.
+
+$ ocamlopt -S -c prog.ml
+$ ocamlopt -o prog_as prog.cmx        # prog.o came from as
+$ ./prog_as
+11 20 7 100 20 5 245 10 74 73 2 90 
+
+$ gcc -c prog.s -o prog.o             # same .s, compression on
+  arch: rv64i2p1_m2p0_a2p1_f2p2_d2p2_c2p0_zicsr2p0_zifencei2p0_zmmul1p0_zaamo1p0_zalrsc1p0
+$ ocamlopt -o prog_gcc prog.cmx
+$ ./prog_gcc
+Illegal instruction
+  exit 132  (128+4, SIGILL)
+
+island entry widths:
+  prog_as.o    2-byte j: 0  4-byte j: 14
+  prog.o       2-byte j: 14  4-byte j: 0

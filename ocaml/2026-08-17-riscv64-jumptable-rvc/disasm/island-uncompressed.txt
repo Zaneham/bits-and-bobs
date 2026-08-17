@@ -1,0 +1,22 @@
+=== riscv64 linux, assembled with bare as, no compression ===
+rv64i2p0_m2p0_a2p0_f2p0_d2p0_zmmul1p0_zaamo1p0_zalrsc1p0
+2-byte j entries: 0
+4-byte j entries: 1754
+
+  28:	002f1293          	slli	t0,t5,0x2
+  2c:	00530333          	add	t1,t1,t0
+  30:	00030067          	jr	t1
+
+0000000000000034 <.L156>:
+  34:	0100006f          	j	44 <.L152>
+  38:	0480006f          	j	80 <.L151>
+  3c:	0800006f          	j	bc <.L150>
+  40:	0b80006f          	j	f8 <.L149>
+
+0000000000000044 <.L152>:
+  44:	fe0d0d13          	addi	s10,s10,-32
+  48:	000db303          	ld	t1,0(s11)
+  4c:	626d6e63          	bltu	s10,t1,688 <.L159>
+
+0000000000000050 <.L158>:
+  50:	008d0f93          	addi	t6,s10,8

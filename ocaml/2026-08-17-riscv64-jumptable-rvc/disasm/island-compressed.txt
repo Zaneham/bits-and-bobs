@@ -1,0 +1,22 @@
+=== riscv64 solo5, assembled via gcc wrapper, compression on ===
+rv64i2p1_m2p0_a2p1_f2p2_d2p2_c2p0_zicsr2p0_zifencei2p0_zmmul1p0_zaamo1p0_zalrsc1p0
+2-byte j entries: 1506
+4-byte j entries: 242
+
+  24:	002f1293          	slli	t0,t5,0x2
+  28:	9316                	add	t1,t1,t0
+  2a:	8302                	jr	t1
+
+000000000000002c <.L156>:
+  2c:	a021                	j	34 <.L156+0x8>
+  2e:	a825                	j	66 <.L156+0x3a>
+  30:	a095                	j	94 <.L156+0x68>
+  32:	a851                	j	c6 <.L156+0x9a>
+  34:	1d01                	addi	s10,s10,-32
+  36:	000db303          	ld	t1,0(s11)
+  3a:	506d6063          	bltu	s10,t1,53a <.L160+0x2>
+  3e:	008d0f93          	addi	t6,s10,8
+  42:	0fc1                	addi	t6,t6,16
+  44:	40000413          	li	s0,1024
+  48:	fe8fbc23          	sd	s0,-8(t6)
+  4c:	00bfb023          	sd	a1,0(t6)

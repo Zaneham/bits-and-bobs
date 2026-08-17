@@ -1,0 +1,19 @@
+=== after the fix: compression on, islands protected ===
+rv64i2p1_m2p0_a2p1_f2p2_d2p2_c2p0_zicsr2p0_zifencei2p0_zmmul1p0_zaamo1p0_zalrsc1p0
+2-byte j entries: 732
+4-byte j entries: 1016
+compressed instructions elsewhere: 9858
+
+  26:	002f1293          	slli	t0,t5,0x2
+  2a:	9316                	add	t1,t1,t0
+  2c:	8302                	jr	t1
+
+000000000000002e <.L156>:
+  2e:	0100006f          	j	3e <.L152>
+  32:	03e0006f          	j	70 <.L151>
+  36:	0680006f          	j	9e <.L150>
+  3a:	0960006f          	j	d0 <.L149>
+
+000000000000003e <.L152>:
+  3e:	1d01                	addi	s10,s10,-32
+  40:	000db303          	ld	t1,0(s11)

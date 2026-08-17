@@ -1,0 +1,21 @@
+--- a/asmcomp/riscv/emit.mlp	2026-08-17 04:17:15.675725991 +0000
++++ a/asmcomp/riscv/emit.mlp	2026-08-17 04:17:15.775727974 +0000
+@@ -570,10 +570,17 @@
+       `	slli	t0, {emit_reg i.arg.(0)}, 2\n`;
+       `	add	{emit_reg reg_tmp}, {emit_reg reg_tmp}, t0\n`;
+       `	jr	{emit_reg reg_tmp}\n`;
++      (* The dispatch above indexes this table by 4, so every entry must stay a
++         full-width instruction. Compression would shrink some of them to two
++         bytes and the index arithmetic would land mid-entry. *)
++      `	.option	push\n`;
++      `	.option	norvc\n`;
++      `	.option	norelax\n`;
+       `{emit_label lbl}:\n`;
+       for i = 0 to Array.length jumptbl - 1 do
+         `	j	{emit_label jumptbl.(i)}\n`
+-      done
++      done;
++      `	.option	pop\n`
+   | Lentertrap ->
+       ()
+   | Ladjust_trap_depth { delta_traps } ->
