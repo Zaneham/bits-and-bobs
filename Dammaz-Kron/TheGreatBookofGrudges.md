@@ -84,6 +84,35 @@ mention it.
 **Settled when** `fsqrt.d` and `sext.w` are emitted, both being free, and the
 B-extension gate exists so the rest can follow.
 
+### 11. OCaml's RISC-V assembly only works if nobody compresses it
+**Against** `asmcomp/riscv`, the third grudge in this book against the same
+corner of the tree and by a distance the worst behaved of them.
+**The offence** The compiler emits the same assembly on Linux as it does on a
+freestanding cross build. Byte for byte identical. I diffed it. The only thing
+that differs in the entire file is the module name sitting in the frametable.
+
+What differs is who assembles it. `Config.asm` is bare `as` on Linux and gets
+no compression and no relaxation. ocaml-solo5 sets it to a gcc wrapper, which
+cheerfully staples `-march=rv64imafdc` onto compiler-generated assembly that
+never asked for it, because as far as it is concerned it is compiling C.
+
+So it builds. It links. It boots. It allocates, it collects garbage, it runs an
+effect handler and resumes the continuation, freestanding, on RISC-V, first
+time of asking. And then it cannot print a number (GAH). `Printf.sprintf
+"plain"`, no conversion in it, nothing whatsoever to format, hands back binary
+garbage. `%d` segfaults loading field six of a closure environment.
+
+An afternoon in a disassembler for this. On the way I convicted gp-relative
+relaxation, then frametable label differences, then host archive contamination,
+and all three walked free. What it actually is: every function entry sitting at
+2 mod 4, and 287 `R_RISCV_ALIGN` relocations where the Linux build has exactly
+none. Drop the `c` and every last one of them works.
+**Settled when** the backend tolerates compression of its own output, or it is
+established that it cannot and the toolchain is made to stop asking. What galls
+is that this has sat there for as long as riscv64 has been Tier 1, and digging
+it out took a unikernel, because assembling OCaml through a C driver is a thing
+precisely one project on earth does.
+
 ---
 
 ## Remedy offered
