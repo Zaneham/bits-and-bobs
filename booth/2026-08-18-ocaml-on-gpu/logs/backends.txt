@@ -1,0 +1,7 @@
+=== every backend, from the same BIR ===
+--cpu           999 bytes
+--rv64          858 bytes
+--amdgpu       1300 bytes
+--nvidia-ptx   1036 bytes
+--metal        1018 bytes
+--tensix       3070 bytes

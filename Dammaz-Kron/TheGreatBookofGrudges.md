@@ -92,6 +92,17 @@ at. I did search. I only searched open issues, and it closed on the 15th of May
 (doh!).
 **Settled when** the search includes closed issues.
 
+### 13. BIR's value numbers count instructions, not values
+**Against** `bir_print.c`, and therefore against me, since I wrote neither the
+printer nor the sense to check it before writing an emitter.
+**The offence** `%n` is the instruction's position in the function, so `store`,
+`br_cond`, `br` and `ret` each burn a number and print nothing. The gaps are
+invisible. An emitter that numbers only the values it actually defines produces
+perfectly valid BIR with different numbers from the frontend's, which I found
+out by getting a byte-identical object file out of a text file that was not.
+**Settled when** the numbering runs over defined values, or the format admits
+in writing that it does not.
+
 ---
 
 ## Remedy offered

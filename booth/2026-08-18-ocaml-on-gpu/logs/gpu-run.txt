@@ -1,0 +1,4 @@
+=== NVIDIA, RTX 4060 Ti, driver 560.94, sm_89 ===
+loaded /tmp/ocaml.ptx, kernel vadd
+all 4096 elements correct, c[0]=1000 c[4095]=1000
+OK: an OCaml kernel ran on the GPU.

@@ -1,0 +1,5 @@
+=== CPU backend, linked and run under Linux ===
+a[i] = i, b[i] = 100*i, so a wrong index shows up in the value
+
+all 16 elements correct, c[0]=0 c[15]=1515
+OK: a kernel written in OCaml computed the right answer.
